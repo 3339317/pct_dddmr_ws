@@ -1,0 +1,8 @@
+mapping_mid360_t13:
+--->Test non-repeatitive scan lidar with 13 degree tilting
+
+mapping_c16_t0:
+--->Test 16 lines lidar mapping at 200*80 meters area with wheel chair passage. Loop closure is tested.
+
+mapping_airy_t45:
+--->Test Airy with 45 degree tilting using wheel odometry.

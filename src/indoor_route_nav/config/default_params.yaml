@@ -1,0 +1,41 @@
+control_params:
+  max_linear_x: 0.7
+  max_angular_z: 0.6
+  min_linear_x: 0.08
+  min_angular_z: 0.12
+  arrival_distance: 0.18
+  arrival_angle_deg: 5.0
+  alpha: 0.32
+  obstacle_threshold: 1.5
+  obstacle_inflation: 0.2
+  obstacle_max_range: 3.0
+  front_angle_deg: 25.0
+  z_min: -0.1
+  z_max: 1.5
+  obstacle_min_dist: 0.1
+  resume_delay: 0.5
+  deceleration_alpha: 0.18
+  slowdown_distance: 0.9
+  slowdown_ratio: 0.3
+  dynamic_obs_timeout: 1.0
+  obstacle_avoidance_enabled: false
+  lookahead_distance: 0.55
+  path_yaw_kp: 0.032
+  final_yaw_kp: 0.035
+  end_slowdown_distance: 1.1
+  heading_slow_angle_deg: 28.0
+smoothing_params:
+  route_sample_gap: 0.2
+map_display:
+  sample_step: 1
+  ground_max_trav: 5.0
+  inflation_min_trav: 5.0
+  obstacle_min_trav: 45.0
+  obstacle_stride_multiplier: 1
+topics:
+  camera_topic: /camera/image_raw
+  nav_start_topic: /nav/start
+  nav_stop_topic: /nav/stop
+  nav_done_topic: /nav/done
+  external_goal_topic: /indoor_route_nav/goal
+  initialpose_frame: map

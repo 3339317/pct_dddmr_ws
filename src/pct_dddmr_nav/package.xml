@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>pct_dddmr_nav</name>
+  <version>0.1.0</version>
+  <description>PCT global planning integrated with DDDMR local navigation.</description>
+  <maintainer email="if@example.com">if</maintainer>
+  <license>GPL-2.0-or-later</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>dddmr_sys_core</exec_depend>
+  <exec_depend>sensor_msgs_py</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

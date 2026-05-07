@@ -1,0 +1,72 @@
+# ROS 2 build artifacts
+build/
+install/
+log/
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Pickle files
+*.pickle
+
+# PCD files (optional, comment out if you want to keep them)
+# *.pcd
+
+# TensorRT engine files
+*.engine
+
+# Precompiled planner libraries
+src/pct_dddmr_nav/vendor/pct_planner/planner/lib/*.so
+src/pct_dddmr_nav/vendor/pct_planner/planner/lib/*.pyi
+src/pct_dddmr_nav/vendor/pct_planner/planner/lib/3rdparty/gtsam-4.1.1/
+src/pct_dddmr_nav/vendor/pct_planner/planner/lib/3rdparty/osqp/
+src/pct_dddmr_nav/vendor/pct_planner/planner/lib/build/
+
+# ONNX models (optional, comment out if you want to keep them)
+src/lego_loam_bor/engine/*.onnx
