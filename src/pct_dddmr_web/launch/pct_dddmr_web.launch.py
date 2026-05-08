@@ -4,9 +4,9 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     web_node = Node(
-        package="indoor_route_nav",
+        package="pct_dddmr_web",
         executable="web_app",
-        name="indoor_route_nav_web_app",
+        name="pct_dddmr_web_web_app",
         output="screen",
     )
 

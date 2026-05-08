@@ -1,6 +1,6 @@
-# PCT + DDDMR 室内导航工作空间
+# pct_dddmr_nav
 
-这个工作空间用于把 **PCT 点云地图全局规划**、**DDDMR 局部避障/路径追踪** 和 **网页端显示/控制** 组合成一个可部署的导航功能包。
+`pct_dddmr_nav` 是本仓库的主集成包，负责启动 PCT 全局规划、DDDMR 局部避障/路径追踪、Web 控制台和桥接节点。
 
 当前设计：
 
@@ -21,7 +21,7 @@
 ## 构建
 
 ```bash
-cd /home/if/pct_dddmr_ws
+cd <workspace>
 source /opt/ros/humble/setup.bash
 colcon build
 source install/setup.bash
@@ -39,7 +39,7 @@ source install/setup.bash
 使用自己的 `.pickle` 地图：
 
 ```bash
-cd /home/if/pct_dddmr_ws
+cd <workspace>
 source install/setup.bash
 
 ros2 launch pct_dddmr_nav pct_dddmr_nav.launch.py \
@@ -133,7 +133,7 @@ safety_margin_cells: 15
 配置文件位置：
 
 ```text
-/home/if/pct_dddmr_ws/src/pct_dddmr_nav/config/pct_dddmr_params.yaml
+src/pct_dddmr_nav/config/pct_dddmr_params.yaml
 ```
 
 说明：
@@ -171,7 +171,7 @@ safety_margin_cells: 15
 - `/global_path`：PCT 全局路径，网页显示使用它。
 - `/pct_path`：PCT 路径调试话题。
 - `/cmd_vel`：DDDMR 输出速度。
-- `/indoor_route_nav/controller/state`：导航状态给网页端。
+- `/pct_dddmr_web/controller/state`：导航状态给网页端。
 
 Action：
 
@@ -183,12 +183,6 @@ Action：
 ## 地图转换
 
 本导航工作空间只使用已经转换好的 `.pickle` 地图。建图和地图转换可以在外部单独完成。
-
-如果需要使用封装后的转换工具，请查看：
-
-```text
-/home/if/pct_dddmr_ws/src/pct_tomogram_tools/README.md
-```
 
 ## 常见问题
 

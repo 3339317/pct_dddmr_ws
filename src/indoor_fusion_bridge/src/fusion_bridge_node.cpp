@@ -3,12 +3,12 @@
  *
  * Copyright (c) 2024, Indoor Fusion Bridge
  *
- * Fusion bridge node: connects dddmr navigation stack with indoor_nav_ws web UI.
+ * Fusion bridge node: connects dddmr navigation stack with pct_dddmr_web UI.
  *
  * Bridges:
  *   1. Pose:  /mcl_pose (PoseWithCovarianceStamped) → /localization (Odometry), optional
- *   2. Goal:  /indoor_route_nav/controller/start → /p2p_move_base (action)
- *   3. State: p2p_move_base feedback → /indoor_route_nav/controller/state (String JSON)
+ *   2. Goal:  /pct_dddmr_web/controller/start → /p2p_move_base (action)
+ *   3. State: p2p_move_base feedback → /pct_dddmr_web/controller/state (String JSON)
  *   4. Done:  p2p_move_base result → /nav/done (String JSON)
  */
 
@@ -77,15 +77,15 @@ public:
     // 2. Goal bridge: intercept route start → p2p_move_base action
     // =========================================================
     sub_route_ = this->create_subscription<nav_msgs::msg::Path>(
-      "/indoor_route_nav/controller/route", rclcpp::QoS(10).reliable(),
+      "/pct_dddmr_web/controller/route", rclcpp::QoS(10).reliable(),
       std::bind(&FusionBridgeNode::routeCallback, this, std::placeholders::_1));
 
     sub_controller_start_ = this->create_subscription<std_msgs::msg::Empty>(
-      "/indoor_route_nav/controller/start", rclcpp::QoS(10).reliable(),
+      "/pct_dddmr_web/controller/start", rclcpp::QoS(10).reliable(),
       std::bind(&FusionBridgeNode::controllerStartCallback, this, std::placeholders::_1));
 
     sub_controller_stop_ = this->create_subscription<std_msgs::msg::Empty>(
-      "/indoor_route_nav/controller/stop", rclcpp::QoS(10).reliable(),
+      "/pct_dddmr_web/controller/stop", rclcpp::QoS(10).reliable(),
       std::bind(&FusionBridgeNode::controllerStopCallback, this, std::placeholders::_1));
 
     // Action client for /p2p_move_base
@@ -93,13 +93,13 @@ public:
       this, "/p2p_move_base");
 
     // =========================================================
-    // 3. State bridge: publish to /indoor_route_nav/controller/state
+    // 3. State bridge: publish to /pct_dddmr_web/controller/state
     // =========================================================
     pub_controller_state_ = this->create_publisher<std_msgs::msg::String>(
-      "/indoor_route_nav/controller/state", rclcpp::QoS(10).reliable());
+      "/pct_dddmr_web/controller/state", rclcpp::QoS(10).reliable());
 
     pub_controller_status_ = this->create_publisher<std_msgs::msg::String>(
-      "/indoor_route_nav/controller/status", rclcpp::QoS(10).reliable());
+      "/pct_dddmr_web/controller/status", rclcpp::QoS(10).reliable());
 
     pub_nav_done_ = this->create_publisher<std_msgs::msg::String>(
       "/nav/done", rclcpp::QoS(10).reliable());

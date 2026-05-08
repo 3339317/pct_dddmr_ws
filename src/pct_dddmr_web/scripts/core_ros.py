@@ -98,9 +98,9 @@ class AppCore:
         self.nav_start_topic = "/nav/start"
         self.nav_stop_topic = "/nav/stop"
         self.nav_done_topic = "/nav/done"
-        self.external_route_topic = "/indoor_route_nav/external_route"
-        self.external_route_rich_topic = "/indoor_route_nav/external_route_rich"
-        self.nav_clear_topic = "/indoor_route_nav/clear"
+        self.external_route_topic = "/pct_dddmr_web/external_route"
+        self.external_route_rich_topic = "/pct_dddmr_web/external_route_rich"
+        self.nav_clear_topic = "/pct_dddmr_web/clear"
 
         self.initialpose_frame = "map"
         self.tomogram_path = ""
@@ -580,7 +580,7 @@ class AppCore:
 # =========================================================
 class WebRosBridgeNode(Node):
     def __init__(self, core: AppCore):
-        super().__init__("indoor_route_nav_web")
+        super().__init__("pct_dddmr_web_web")
         self.core = core
         self.bridge = CvBridge() if CvBridge is not None else None
         self.localization_seq = 0
@@ -602,7 +602,7 @@ class WebRosBridgeNode(Node):
         )
 
         self.sub_controller_state = self.create_subscription(
-            String, "/indoor_route_nav/controller/state", self.controller_state_callback, 10
+            String, "/pct_dddmr_web/controller/state", self.controller_state_callback, 10
         )
 
         self.sub_nav_done = self.create_subscription(
@@ -633,11 +633,11 @@ class WebRosBridgeNode(Node):
         )
 
         self.pub_nav_done = self.create_publisher(String, self.core.nav_done_topic, 10)
-        self.pub_controller_route = self.create_publisher(Path, "/indoor_route_nav/controller/route", 10)
-        self.pub_controller_config = self.create_publisher(String, "/indoor_route_nav/controller/config", 10)
-        self.pub_controller_start = self.create_publisher(Empty, "/indoor_route_nav/controller/start", 10)
-        self.pub_controller_stop = self.create_publisher(Empty, "/indoor_route_nav/controller/stop", 10)
-        self.pub_controller_clear = self.create_publisher(Empty, "/indoor_route_nav/controller/clear", 10)
+        self.pub_controller_route = self.create_publisher(Path, "/pct_dddmr_web/controller/route", 10)
+        self.pub_controller_config = self.create_publisher(String, "/pct_dddmr_web/controller/config", 10)
+        self.pub_controller_start = self.create_publisher(Empty, "/pct_dddmr_web/controller/start", 10)
+        self.pub_controller_stop = self.create_publisher(Empty, "/pct_dddmr_web/controller/stop", 10)
+        self.pub_controller_clear = self.create_publisher(Empty, "/pct_dddmr_web/controller/clear", 10)
         self.pub_initialpose = self.create_publisher(PoseWithCovarianceStamped, "/initialpose", 10)
 
         self.pub_chassis_cmd_vel = self.create_publisher(Twist, "/cmd_vel", 10)

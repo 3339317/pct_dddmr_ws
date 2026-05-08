@@ -2,7 +2,7 @@
 indoor_fusion_nav.launch.py
 Unified launch file for the indoor fusion workspace.
 
-Launches dddmr navigation stack + indoor_nav_ws web UI + fusion bridge.
+Launches dddmr navigation stack + pct_dddmr_web UI + fusion bridge.
 
 Usage:
   ros2 launch indoor_fusion_bridge indoor_fusion_nav.launch.py \
@@ -105,12 +105,12 @@ def generate_launch_description():
     )
 
     # =========================================================
-    # Indoor Route Nav - Web App only (no controller/planner)
+    # PCT DDDMR Web - Web App only (no controller/planner)
     # =========================================================
     web_app = Node(
-        package="indoor_route_nav",
+        package="pct_dddmr_web",
         executable="web_app",
-        name="indoor_route_nav_web_app",
+        name="pct_dddmr_web_web_app",
         output="screen",
     )
 

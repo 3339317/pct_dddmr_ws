@@ -41,14 +41,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 if not os.path.isdir(STATIC_DIR) and get_package_share_directory is not None:
     try:
-        STATIC_DIR = os.path.join(get_package_share_directory("indoor_route_nav"), "static")
+        STATIC_DIR = os.path.join(get_package_share_directory("pct_dddmr_web"), "static")
     except Exception:
         pass
 INDEX_FILE = os.path.join(STATIC_DIR, "index.html")
 DEFAULT_CONFIG_FILE = os.path.join(BASE_DIR, "config", "default_params.yaml")
 if get_package_share_directory is not None:
     try:
-        share_dir = get_package_share_directory("indoor_route_nav")
+        share_dir = get_package_share_directory("pct_dddmr_web")
         share_default_config = os.path.join(share_dir, "config", "default_params.yaml")
         if os.path.exists(share_default_config):
             DEFAULT_CONFIG_FILE = share_default_config

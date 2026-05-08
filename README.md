@@ -17,7 +17,6 @@
 - **Web 控制台**：显示处理后的地图、机器人位置、全局路径，并支持点击目标点导航。
 - **多楼层选点辅助**：支持按 Z 高度筛选点云，方便在多楼层/楼梯/坡道地图中选择目标点。
 - **参数联动**：Web 端速度、角速度、慢加速、到点阈值、角度偏差阈值等参数会同步到 DDDMR。
-- **地图转换工具**：提供 `pct_tomogram_tools`，可把 `.pcd` 点云地图转换为 PCT 需要的 `.pickle`。
 - **测试定位工具**：提供假的 `/localization` 和 `map -> base_link` TF 发布器，用于无真实定位时测试 Web 与规划链路。
 
 ## 系统架构
@@ -74,23 +73,14 @@
 map -> base_link TF
 ```
 
-地图转换额外需要：
-
-```text
-CUDA
-CuPy
-Open3D
-```
-
-注意：**PCD 转 `.pickle` 地图转换需要 GPU/CUDA；使用已经转换好的 `.pickle` 导航规划不需要 GPU。**
+注意：本仓库只负责使用已经转换好的 `.pickle` 地图进行导航。PCD 到 `.pickle` 的地图转换请在外部工具链中提前完成；使用 `.pickle` 导航规划本身不需要 GPU。
 
 ## 仓库结构
 
 ```text
 src/
   pct_dddmr_nav/        PCT + DDDMR 导航集成包和主 launch
-  pct_tomogram_tools/   PCD -> PCT tomogram pickle 地图转换工具
-  indoor_route_nav/     Web 控制台和 ROS Web 桥
+  pct_dddmr_web/        Web 控制台和 ROS Web 桥
   indoor_fusion_bridge/ Web 控制台到 DDDMR action 的桥接节点
   p2p_move_base/        DDDMR 点到点导航
   local_planner/        DDDMR 局部规划器
@@ -103,12 +93,6 @@ src/
 
 ```text
 src/pct_dddmr_nav/README.md
-```
-
-地图转换工具说明见：
-
-```text
-src/pct_tomogram_tools/README.md
 ```
 
 ## 快速开始
@@ -137,15 +121,7 @@ source install/setup.bash
 
 可以直接用于导航。
 
-如果只有 `.pcd` 点云地图，需要先转换：
-
-```bash
-ros2 run pct_tomogram_tools pcd_to_tomogram \
-  --pcd /path/to/map.pcd \
-  --output /path/to/map.pickle
-```
-
-更多转换参数见 `src/pct_tomogram_tools/README.md`。
+如果只有 `.pcd` 点云地图，需要先在外部 PCT 地图转换工具中生成 `.pickle`，然后再把 `.pickle` 路径传给本导航工作空间。
 
 ### 3. 启动定位和雷达
 
@@ -276,7 +252,7 @@ safety_margin_cells: 20
 
 ## 第三方代码与许可
 
-本项目集成/改造了多个开源组件，包括 DDDMR、PCT planner、Indoor Route Nav 等。请在发布前确认各子模块和 vendored 第三方库的 LICENSE / NOTICE。
+本项目集成/改造了多个开源组件，包括 DDDMR、PCT planner、PCT DDDMR Web 等。请在发布前确认各子模块和 vendored 第三方库的 LICENSE / NOTICE。
 
 PCT vendored 目录中包含：
 

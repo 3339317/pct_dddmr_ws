@@ -137,7 +137,7 @@ void Local_Planner::initial(
   }
 
   web_control_config_sub_ = this->create_subscription<std_msgs::msg::String>(
-    "/indoor_route_nav/controller/config", 10,
+    "/pct_dddmr_web/controller/config", 10,
     [this](const std_msgs::msg::String::SharedPtr msg) {
       applyWebControlConfig(msg->data);
     });

@@ -37,5 +37,5 @@ topics:
   nav_start_topic: /nav/start
   nav_stop_topic: /nav/stop
   nav_done_topic: /nav/done
-  external_goal_topic: /indoor_route_nav/goal
+  external_goal_topic: /pct_dddmr_web/goal
   initialpose_frame: map

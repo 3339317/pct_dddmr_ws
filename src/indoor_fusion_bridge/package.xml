@@ -3,7 +3,7 @@
 <package format="3">
   <name>indoor_fusion_bridge</name>
   <version>1.0.0</version>
-  <description>Bridge node fusing dddmr navigation with indoor_nav_ws web UI</description>
+  <description>Bridge node fusing DDDMR navigation with the PCT-DDDMR web UI</description>
   <maintainer email="dev@robot.com">robot</maintainer>
   <license>BSD-3-Clause</license>
 
