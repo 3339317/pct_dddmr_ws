@@ -4,7 +4,7 @@ PCT global planning + DDDMR local obstacle avoidance/path tracking + web UI.
 This launch assumes localization and the MID360 driver are already running on
 the deployment computer:
   - /localization    nav_msgs/Odometry in map frame
-  - /livox/lidar     Livox Mid360 PointCloud2/CustomMsg input used by mcl_feature
+  - /livox/lidar_points  Livox Mid360 PointCloud2 input used by mcl_feature
   - TF map -> base_link, or equivalent pose TF from your localization stack
 """
 
@@ -41,6 +41,7 @@ def generate_launch_description():
     use_mcl_feature = LaunchConfiguration("use_mcl_feature")
     use_web = LaunchConfiguration("use_web")
     publish_livox_tf = LaunchConfiguration("publish_livox_tf")
+    local_lidar_topic = LaunchConfiguration("local_lidar_topic")
 
     pct_lib = PathJoinSubstitution([pct_root, "planner", "lib"])
 
@@ -86,7 +87,7 @@ def generate_launch_description():
         output="screen",
         parameters=[dddmr_params],
         remappings=[
-            ("/lslidar_point_cloud", "/livox/lidar"),
+            ("/lslidar_point_cloud", local_lidar_topic),
         ],
         condition=IfCondition(use_mcl_feature),
     )
@@ -133,6 +134,7 @@ def generate_launch_description():
         DeclareLaunchArgument("use_mcl_feature", default_value="true"),
         DeclareLaunchArgument("use_web", default_value="true"),
         DeclareLaunchArgument("publish_livox_tf", default_value="true"),
+        DeclareLaunchArgument("local_lidar_topic", default_value="/livox/lidar_points"),
         SetEnvironmentVariable(
             "PYTHONPATH",
             [pct_lib, ":", os.environ.get("PYTHONPATH", "")],

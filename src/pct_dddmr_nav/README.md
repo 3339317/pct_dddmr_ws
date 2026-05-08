@@ -7,7 +7,7 @@
 - 全局路径规划：PCT `.pickle` tomogram 地图。
 - 局部避障与最终 `/cmd_vel`：DDDMR `p2p_move_base` + `local_planner`。
 - 网页显示：直接加载 PCT 处理后的 `.pickle` 地图，显示地面、膨胀层、障碍物。
-- 定位和雷达驱动：外部提供，本工作空间默认不包含 FAST-LIO 定位和 MID360 驱动。
+- 定位和雷达驱动：当前集中工作空间已经包含 Livox MID360 驱动和 FAST-LIO/FAST-LIO-Localization。
 
 ## 输入要求
 
@@ -15,7 +15,8 @@
 
 - `/localization`：`nav_msgs/Odometry`，机器人当前位姿。
 - TF：`map -> base_link`，通常由定位系统发布。
-- `/livox/lidar`：MID360 点云，用于 DDDMR 局部避障。
+- `/livox/lidar`：MID360 CustomMsg，建议用于 FAST-LIO 建图/重定位。
+- `/livox/lidar_points`：由 CustomMsg 转换出的 `sensor_msgs/PointCloud2`，用于 DDDMR 局部避障。
 - PCT 转换后的 `.pickle` 地图文件。
 
 ## 构建
@@ -35,6 +36,23 @@ source install/setup.bash
 ```
 
 ## 启动导航
+
+一体化启动 MID360、FAST-LIO 重定位、PCT-DDDMR 导航和 Web：
+
+```bash
+ros2 launch pct_dddmr_nav full_livox_fastlio_pct_nav.launch.py \
+  map:=/path/to/your_map.pcd \
+  tomogram_path:=/path/to/your_map.pickle
+```
+
+如果某一部分已经外部启动，可以关闭对应模块：
+
+```bash
+ros2 launch pct_dddmr_nav full_livox_fastlio_pct_nav.launch.py \
+  map:=/path/to/your_map.pcd \
+  tomogram_path:=/path/to/your_map.pickle \
+  start_livox:=false
+```
 
 使用自己的 `.pickle` 地图：
 
@@ -64,11 +82,39 @@ ros2 launch pct_dddmr_nav pct_dddmr_nav.launch.py --show-args
 - `use_web`：是否启动网页端，默认 `true`。
 - `use_mcl_feature`：是否启动 DDDMR 的 MID360 局部避障输入，默认 `true`。
 - `publish_livox_tf`：是否发布 `base_link -> livox_frame` 静态 TF，默认 `true`。
+- `local_lidar_topic`：DDDMR 局部避障使用的 PointCloud2 话题，默认 `/livox/lidar_points`。
 
 网页默认地址：
 
 ```text
 http://127.0.0.1:8000
+```
+
+## Livox CustomMsg 转 PointCloud2
+
+如果 Livox 驱动使用 `xfer_format=1`，`/livox/lidar` 是 `livox_ros_driver2/msg/CustomMsg`，适合 FAST-LIO，但 DDDMR 的 `mcl_feature` 需要 `sensor_msgs/PointCloud2`。
+
+可以启动：
+
+```bash
+ros2 launch pct_dddmr_nav livox_mid360_with_converter.launch.py
+```
+
+这个 launch 会启动官方 `livox_ros_driver2 msg_MID360_launch.py`，并额外发布：
+
+```text
+/livox/lidar         CustomMsg，给 FAST-LIO
+/livox/lidar_points  PointCloud2，给 DDDMR 局部避障
+```
+
+如果你已经单独启动了 Livox 驱动，也可以只启动转换节点：
+
+```bash
+ros2 run pct_dddmr_nav livox_custom_to_pointcloud2 \
+  --ros-args \
+  -p input_topic:=/livox/lidar \
+  -p output_topic:=/livox/lidar_points \
+  -p frame_id:=livox_frame
 ```
 
 ## 测试定位脚本
@@ -162,7 +208,7 @@ src/pct_dddmr_nav/config/pct_dddmr_params.yaml
 输入：
 
 - `/localization`：定位，`nav_msgs/Odometry`。
-- `/livox/lidar`：MID360 雷达点云。
+- `/livox/lidar_points`：MID360 转换后的局部避障点云。
 - `/mapground`：处理后地面点云。
 - `/mapcloud`：处理后障碍物点云。
 

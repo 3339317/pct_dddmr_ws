@@ -49,11 +49,9 @@
 
 本项目默认 **不包含**：
 
-- 定位系统，例如 FAST-LIO / FAST-LIO-Localization。
-- Livox/MID360 雷达驱动。
 - 建图流程。
 
-这些系统通常在部署机器上单独运行，本项目只消费它们发布的话题。
+当前工作空间已经集中放入 Livox MID360 驱动、FAST-LIO/FAST-LIO-Localization、PCT-DDDMR 导航和 Web 控制台。建图和 `.pickle` 地图转换仍建议按实际场景单独完成。
 
 ## 环境要求
 
@@ -69,7 +67,8 @@
 
 ```text
 /localization    nav_msgs/Odometry
-/livox/lidar     MID360/Livox 点云
+/livox/lidar     MID360/Livox CustomMsg，给 FAST-LIO 建图/重定位
+/livox/lidar_points  sensor_msgs/PointCloud2，给 DDDMR 局部避障
 map -> base_link TF
 ```
 
@@ -79,6 +78,9 @@ map -> base_link TF
 
 ```text
 src/
+  livox_ros_driver2/    MID360 雷达驱动
+  FAST_LIO_ROS2/        FAST-LIO 建图包
+  FAST_LIO_LOCALIZATION2-ros2/ FAST-LIO 重定位包
   pct_dddmr_nav/        PCT + DDDMR 导航集成包和主 launch
   pct_dddmr_web/        Web 控制台和 ROS Web 桥
   indoor_fusion_bridge/ Web 控制台到 DDDMR action 的桥接节点
@@ -133,6 +135,28 @@ ros2 topic echo /livox/lidar --once
 ros2 run tf2_ros tf2_echo map base_link
 ```
 
+如果 Livox 驱动使用 `xfer_format=1` 的 CustomMsg，建议用本仓库提供的联合 launch，同时发布 DDDMR 可用的 PointCloud2：
+
+```bash
+ros2 launch pct_dddmr_nav livox_mid360_with_converter.launch.py
+ros2 topic hz /livox/lidar
+ros2 topic hz /livox/lidar_points
+```
+
+其中 `/livox/lidar` 保持 CustomMsg 给 FAST-LIO，`/livox/lidar_points` 是转换后的 PointCloud2，给局部避障使用。
+
+也可以使用集中工作空间的一体化启动：
+
+```bash
+ros2 launch pct_dddmr_nav full_livox_fastlio_pct_nav.launch.py \
+  map:=/path/to/your_map.pcd \
+  tomogram_path:=/path/to/your_map.pickle
+```
+
+这会依次启动 MID360 驱动、CustomMsg 转 PointCloud2、FAST-LIO 重定位、PCT-DDDMR 导航和 Web 控制台。
+
+如果 S100 只负责底盘控制，不需要在 S100 上部署本工作空间。S100 只需要订阅 `/cmd_vel` 并做好超时停车；本工作空间建议放在电脑/车载工控机上运行。
+
 ### 4. 启动导航
 
 ```bash
@@ -150,7 +174,7 @@ http://127.0.0.1:8000
 ```
 
 ## 无真实定位时测试
-
+ros2 launch pct_dddmr_web pct_dddmr_web.launch.py
 发布固定测试位姿：
 
 ```bash

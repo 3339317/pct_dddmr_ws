@@ -38,6 +38,7 @@ setup(
             "pct_get_plan_server = pct_dddmr_nav.pct_get_plan_server:main",
             "tomogram_map_publisher = pct_dddmr_nav.tomogram_map_publisher:main",
             "test_localization_publisher = pct_dddmr_nav.test_localization_publisher:main",
+            "livox_custom_to_pointcloud2 = pct_dddmr_nav.livox_custom_to_pointcloud2:main",
         ],
     },
 )
