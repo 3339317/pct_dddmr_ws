@@ -17,10 +17,11 @@ frame_id      = 'livox_frame'
 lvx_file_path = '/home/livox/livox_test.lvx'
 cmdline_bd_code = 'livox0000000001'
 
-package_path = get_package_share_directory("livox_ros_driver2")
-cur_config_path = os.path.join(package_path, "config")
-user_config_path = os.path.join(cur_config_path, "MID360_config.json")
-rviz_config_path = os.path.join(cur_config_path, "display_point_cloud_ROS2.rviz")
+# package_path = get_package_share_directory("livox_ros_driver2"
+package_path = "/home/wheelchair2/livox_ws/src/livox_ros_driver2"   # replace with your own path
+cur_config_path = package_path + '/config'
+user_config_path = os.path.join(cur_config_path, 'MID360_config.json')
+rviz_config_path = os.path.join(cur_config_path, 'display_point_cloud_ROS2.rviz')
 ################### user configure parameters for ros2 end #####################
 
 def generate_launch_description():

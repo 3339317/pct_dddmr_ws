@@ -1,16 +1,16 @@
 # pct_dddmr_web
 
-`pct_dddmr_web` 是本项目的 Web 控制台和 ROS2 桥接包，负责浏览器显示 PCT `.pickle` 地图、机器人定位、全局路径，并把网页上的目标点和控制参数同步给 DDDMR 导航链路。
-
-它不再使用原来的 `indoor_route_nav` 包名，部署到已有 `indoor_route_nav` 的机器上也不会产生 colcon 重名冲突。
+`pct_dddmr_web` 是当前导航系统的 Web 控制台，负责显示 PCT `.pickle` 地图、机器人定位、全局路径、障碍物状态，并把网页选点和控制参数同步给后端路线追踪器。
 
 ## 功能
 
 - 通过 FastAPI 提供浏览器页面，默认端口 `8000`。
+- 直接读取 `.pickle` tomogram 地图用于网页显示。
 - 订阅 `/localization` 显示机器人当前位置。
-- 订阅 `/mapground`、`/mapcloud` 显示 PCT 地图中的地面、障碍物和膨胀层信息。
 - 订阅 `/global_path` 显示 PCT 全局规划结果。
-- 发布 `/pct_dddmr_web/controller/route`、`/pct_dddmr_web/controller/config`、`/pct_dddmr_web/controller/start` 给桥接节点。
+- 订阅 `/pct_dddmr_web/controller/state` 显示路线追踪和避障状态。
+- 调用 PCT `get_dwa_plan` action 生成全局路径。
+- 发布路线、参数、开始、停止、清空命令给 `route_tracker_node`。
 - 支持高度层筛选，方便多楼层、楼梯、坡道地图选取目标点。
 
 ## 启动
@@ -19,7 +19,7 @@
 
 ```bash
 ros2 launch pct_dddmr_nav pct_dddmr_nav.launch.py \
-  tomogram_path:=/path/to/your_map.pickle
+  tomogram_path:=/home/if/pct_dddmr_ws/test.pickle
 ```
 
 如果只想测试 Web 页面：
@@ -38,39 +38,49 @@ http://127.0.0.1:8000
 
 订阅：
 
-- `/localization`：`nav_msgs/Odometry`，外部定位输出。
-- `/mapground`：`sensor_msgs/PointCloud2`，PCT 地面点云。
-- `/mapcloud`：`sensor_msgs/PointCloud2`，PCT 障碍物/膨胀层点云。
+- `/localization`：`nav_msgs/Odometry`，定位输出。
 - `/global_path`：`nav_msgs/Path`，PCT 全局路径。
-- `/pct_dddmr_web/controller/state`：`std_msgs/String`，DDDMR 导航状态。
+- `/pct_dddmr_web/controller/state`：`std_msgs/String`，路线追踪状态 JSON。
+- `/pct_dddmr_web/controller/status`：`std_msgs/String`，后端状态提示。
+- `/nav/done`：`std_msgs/String`，导航完成状态。
 
 发布：
 
-- `/pct_dddmr_web/controller/route`：`nav_msgs/Path`，网页选择的起点/终点路线请求。
+- `/pct_dddmr_web/controller/route`：`nav_msgs/Path`，网页选择并规划后的路线。
 - `/pct_dddmr_web/controller/config`：`std_msgs/String`，网页控制参数 JSON。
 - `/pct_dddmr_web/controller/start`：`std_msgs/Empty`，开始导航。
 - `/pct_dddmr_web/controller/stop`：`std_msgs/Empty`，停止导航。
 - `/pct_dddmr_web/controller/clear`：`std_msgs/Empty`，清空导航。
 - `/initialpose`：`geometry_msgs/PoseWithCovarianceStamped`，网页设置初始位姿。
 
-## 与 DDDMR 的关系
+Action：
 
-Web 端只负责显示、选点、参数同步，不直接接管导航过程中的 `/cmd_vel`。
+- `get_dwa_plan`：PCT 全局规划 action。
 
-实际执行流程是：
+## 当前执行流程
 
 ```text
-Web 目标点
+Web 选点
+  -> get_dwa_plan 生成 PCT 全局路径
   -> /pct_dddmr_web/controller/route
-  -> indoor_fusion_bridge
-  -> /p2p_move_base action
-  -> PCT get_dwa_plan 全局规划
-  -> DDDMR local_planner 局部避障和速度输出
+  -> route_tracker_node
+  -> /cmd_vel
 ```
+
+避障链路：
+
+```text
+/livox/lidar CustomMsg
+  -> mcl_feature
+  -> /segmented_cloud_pure
+  -> route_tracker_node
+```
+
+Web 端不直接发布导航过程中的 `/cmd_vel`。
 
 ## 测试定位
 
-本包保留了一个简单的 `/pcl_pose` 测试脚本，主要用于兼容早期页面测试。当前主导航链路推荐使用 `pct_dddmr_nav` 中的 `/localization` 测试脚本：
+当前主导航链路推荐使用 `pct_dddmr_nav` 中的 `/localization` 测试脚本：
 
 ```bash
 ros2 run pct_dddmr_nav test_localization_publisher \
@@ -81,5 +91,6 @@ ros2 run pct_dddmr_nav test_localization_publisher \
 
 - 本包不负责 PCD 到 `.pickle` 的地图转换。
 - 本包不包含 FAST-LIO 定位和 MID360 驱动。
-- 如果机器人位置不更新，优先检查 `/localization` 和 `map -> base_link` TF。
+- 旧 `/pcl_pose` 测试入口已经移除，当前统一使用 `/localization`。
+- 如果机器人位置不更新，优先检查 `/localization`。
 - 如果高楼层目标点选不中，打开网页左侧的高度层筛选后再选点。

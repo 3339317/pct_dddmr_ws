@@ -11,11 +11,15 @@ from geometry_msgs.msg import PoseWithCovarianceStamped, Pose, Point, Quaternion
 from nav_msgs.msg import Odometry
 # from rclpy.wait_for_message import wait_for_message
 from sensor_msgs.msg import PointCloud2
+from sensor_msgs.msg import PointField
 from std_msgs.msg import Header
 import numpy as np
+if not hasattr(np, "float"):
+    np.float = float
 import tf2_ros
 import tf_transformations
 import ros2_numpy
+from sensor_msgs_py import point_cloud2
 
 
 class FastLIOLocalization(Node):
@@ -29,6 +33,8 @@ class FastLIOLocalization(Node):
         self.consecutive_failures = 0
         self.last_fitness = 0.0
         self.max_failures_before_recovery = 3
+        self.last_wait_initial_pose_log_time = 0.0
+        self.last_scan_cache_time = 0.0
 
         self.declare_parameters(
             namespace="",
@@ -42,6 +48,8 @@ class FastLIOLocalization(Node):
                 ("fov_far", 300),
                 ("pcd_map_topic", "/map"),
                 ("pcd_map_path", ""),
+                ("publish_debug_clouds", False),
+                ("scan_cache_rate", 2.0),
             ],
         )
 
@@ -49,8 +57,13 @@ class FastLIOLocalization(Node):
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
 
         # self.pub_global_map = self.create_publisher(PointCloud2, self.get_parameter("pcd_map_topic").value, 10)
-        self.pub_pc_in_map = self.create_publisher(PointCloud2, "/cur_scan_in_map", 10)
-        self.pub_submap = self.create_publisher(PointCloud2, "/submap", 10)
+        self.publish_debug_clouds = bool(self.get_parameter("publish_debug_clouds").value)
+        self.scan_cache_period = 1.0 / max(0.1, float(self.get_parameter("scan_cache_rate").value))
+        self.pub_pc_in_map = None
+        self.pub_submap = None
+        if self.publish_debug_clouds:
+            self.pub_pc_in_map = self.create_publisher(PointCloud2, "/cur_scan_in_map", 10)
+            self.pub_submap = self.create_publisher(PointCloud2, "/submap", 10)
         self.pub_map_to_odom = self.create_publisher(Odometry, "/map_to_odom", 10)
 
         self.get_logger().info("Waiting for global map...")
@@ -105,19 +118,14 @@ class FastLIOLocalization(Node):
         return trans_inverse
 
     def publish_point_cloud(self, publisher, header, pc):
-        data = dict()
-        data["xyz"] = pc[:, :3]
-        
-        if pc.shape[1] == 4:
-            data["intensity"] = pc[:, 3]
-        # else:
-            # data["rgb"] = np.ones_like(pc)
-        msg = ros2_numpy.msgify(PointCloud2, data)
+        fields = [
+            PointField(name="x", offset=0, datatype=PointField.FLOAT32, count=1),
+            PointField(name="y", offset=4, datatype=PointField.FLOAT32, count=1),
+            PointField(name="z", offset=8, datatype=PointField.FLOAT32, count=1),
+        ]
+        points = pc[:, :3].astype(np.float32, copy=False).tolist()
+        msg = point_cloud2.create_cloud(header, fields, points)
         msg.header = header
-        if len(msg.fields) == 4:
-            msg.point_step = 16
-        else:
-            msg.point_step = 12
             
         publisher.publish(msg)
         
@@ -146,7 +154,8 @@ class FastLIOLocalization(Node):
 
         header = self.cur_odom.header
         header.frame_id = "map"
-        self.publish_point_cloud(self.pub_submap, header, np.array(global_map_in_FOV.points)[::10])
+        if self.publish_debug_clouds and self.pub_submap is not None:
+            self.publish_point_cloud(self.pub_submap, header, np.array(global_map_in_FOV.points)[::10])
 
         return global_map_in_FOV
 
@@ -205,10 +214,16 @@ class FastLIOLocalization(Node):
         self.cur_odom = msg
         
     def cb_save_cur_scan(self, msg):
+        now = time.monotonic()
+        if now - self.last_scan_cache_time < self.scan_cache_period:
+            return
+        self.last_scan_cache_time = now
+
         pc = self.msg_to_array(msg)
         self.cur_scan = o3d.geometry.PointCloud()
         self.cur_scan.points = o3d.utility.Vector3dVector(pc)
-        self.publish_point_cloud(self.pub_pc_in_map, msg.header, pc)
+        if self.publish_debug_clouds and self.pub_pc_in_map is not None:
+            self.publish_point_cloud(self.pub_pc_in_map, msg.header, pc)
         
     def initialize_global_map(self): #, pc_msg):
         # self.global_map = o3d.geometry.PointCloud()
@@ -246,7 +261,10 @@ class FastLIOLocalization(Node):
 
     def localisation_timer_callback(self):
         if not self.initialized:
-            self.get_logger().info("Waiting for initial pose...")
+            now = time.monotonic()
+            if now - self.last_wait_initial_pose_log_time > 10.0:
+                self.get_logger().info("Waiting for initial pose...")
+                self.last_wait_initial_pose_log_time = now
             return
         
         if self.cur_scan is not None:

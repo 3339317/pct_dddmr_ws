@@ -1,38 +1,40 @@
 """
-Start Livox MID360 driver in CustomMsg mode and publish an additional
-PointCloud2 topic for DDDMR local obstacle processing.
+Start Livox MID360 driver in Livox CustomMsg mode.
+
+The driver publishes /livox/lidar as livox_ros_driver2/msg/CustomMsg, which
+keeps FAST-LIO localization on the higher-quality native Livox input. DDDMR
+local obstacle processing subscribes to the same CustomMsg topic directly.
 """
 
+import os
+
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    livox_driver = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            FindPackageShare("livox_ros_driver2"),
-            "/launch_ROS2/msg_MID360_launch.py",
-        ])
-    )
+    livox_share = get_package_share_directory("livox_ros_driver2")
+    user_config_path = os.path.join(livox_share, "config", "MID360_config.json")
 
-    converter = Node(
-        package="pct_dddmr_nav",
-        executable="livox_custom_to_pointcloud2",
-        name="livox_custom_to_pointcloud2",
+    livox_driver = Node(
+        package="livox_ros_driver2",
+        executable="livox_ros_driver2_node",
+        name="livox_lidar_publisher",
         output="screen",
         parameters=[{
-            "input_topic": "/livox/lidar",
-            "output_topic": "/livox/lidar_points",
+            "xfer_format": 1,
+            "multi_topic": 0,
+            "data_src": 0,
+            "publish_freq": 10.0,
+            "output_data_type": 0,
             "frame_id": "livox_frame",
-            "include_time": True,
-            "include_line": True,
+            "lvx_file_path": "/home/livox/livox_test.lvx",
+            "user_config_path": user_config_path,
+            "cmdline_input_bd_code": "livox0000000001",
         }],
     )
 
     return LaunchDescription([
         livox_driver,
-        converter,
     ])

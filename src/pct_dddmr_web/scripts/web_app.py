@@ -729,7 +729,7 @@ async def config_save_system_params_to_path(payload: dict = Body(...)):
 # =========================================================
 @app.post("/api/nav/set-goal")
 async def nav_set_goal(payload: dict = Body(...)):
-    """设置导航目标点，dddmr 会自动规划路径并发布到 /global_path"""
+    """规划到目标点的路径。只更新路线预览，不直接启动机器人。"""
     try:
         x = float(payload.get("x", 0.0))
         y = float(payload.get("y", 0.0))
@@ -740,26 +740,14 @@ async def nav_set_goal(payload: dict = Body(...)):
         if not current_pose:
             raise RuntimeError("尚未收到 /localization，无法确定规划起点")
 
-        # Web UI still expects a route with at least two points before it
-        # starts navigation. DDDMR/PCT will do the real global planning after
-        # p2p_move_base receives the last pose as its goal.
-        route_points = [
-            {
-                "x": float(current_pose.get("x", 0.0)),
-                "y": float(current_pose.get("y", 0.0)),
-                "z": float(current_pose.get("z", 0.0)),
-            },
-            {"x": x, "y": y, "z": z},
-        ]
-        apply_route_points(route_points)
-        ros_runner.sync_controller_route()
-
-        # 触发导航（fusion bridge 会将路线最后一个点作为目标发给 p2p_move_base）
-        ros_runner.start_navigation()
-
-        return {"ok": True, "message": f"已设置导航目标 ({x:.2f}, {y:.2f}, {z:.2f})"}
+        route_points = ros_runner.plan_to_goal(x, y, z, yaw_deg)
+        return {
+            "ok": True,
+            "message": f"已规划到目标 ({x:.2f}, {y:.2f}, {z:.2f})，路线点 {len(route_points)}，点击开始导航后执行",
+            "route_count": len(route_points),
+        }
     except Exception as e:
-        return JSONResponse({"ok": False, "message": f"设置目标失败: {e}"})
+        return JSONResponse({"ok": False, "message": f"规划失败: {e}"})
 
 
 @app.post("/api/nav/start")
@@ -827,7 +815,7 @@ async def chassis_cmd_vel(payload: dict = Body(...)):
         vy = float(payload.get("vy", 0.0))
         vz = float(payload.get("vz", 0.0))
         ros_runner.chassis_cmd_vel(vx, vy, vz)
-        return {"ok": True, "message": f"cmd_vel: vx={vx:.2f} vy={vy:.2f} wz={vz:.2f}"}
+        return {"ok": True, "message": f"manual cmd_vel: vx={vx:.2f} vy={vy:.2f} wz={vz:.2f}"}
     except Exception as e:
         return JSONResponse({"ok": False, "message": f"cmd_vel FAIL: {e}"})
 

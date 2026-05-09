@@ -1,8 +1,7 @@
 """
 One-command launch for the concentrated navigation workspace:
 
-- Livox MID360 driver in CustomMsg mode
-- CustomMsg -> PointCloud2 converter for DDDMR local obstacle processing
+- Livox MID360 driver in PointCloud2 mode
 - FAST-LIO localization stack
 - PCT global planner + DDDMR local navigation + Web UI
 """
@@ -24,6 +23,9 @@ def generate_launch_description():
     start_fastlio = LaunchConfiguration("start_fastlio")
     start_nav = LaunchConfiguration("start_nav")
     use_rviz = LaunchConfiguration("use_rviz")
+    use_mcl_feature = LaunchConfiguration("use_mcl_feature")
+    obstacle_avoidance_enabled = LaunchConfiguration("obstacle_avoidance_enabled")
+    obstacle_cloud_topic = LaunchConfiguration("obstacle_cloud_topic")
 
     pct_share = get_package_share_directory("pct_dddmr_nav")
     fastlio_share = get_package_share_directory("fast_lio_localization")
@@ -53,7 +55,10 @@ def generate_launch_description():
         launch_arguments={
             "tomogram_path": tomogram_path,
             "use_rviz": "false",
-            "local_lidar_topic": "/livox/lidar_points",
+            "local_lidar_topic": "/livox/lidar",
+            "use_mcl_feature": use_mcl_feature,
+            "obstacle_avoidance_enabled": obstacle_avoidance_enabled,
+            "obstacle_cloud_topic": obstacle_cloud_topic,
         }.items(),
         condition=IfCondition(start_nav),
     )
@@ -65,6 +70,9 @@ def generate_launch_description():
         DeclareLaunchArgument("start_fastlio", default_value="true"),
         DeclareLaunchArgument("start_nav", default_value="true"),
         DeclareLaunchArgument("use_rviz", default_value="false"),
+        DeclareLaunchArgument("use_mcl_feature", default_value="false"),
+        DeclareLaunchArgument("obstacle_avoidance_enabled", default_value="false"),
+        DeclareLaunchArgument("obstacle_cloud_topic", default_value="/segmented_cloud_pure"),
         livox_launch,
         TimerAction(period=2.0, actions=[fastlio_launch]),
         TimerAction(period=5.0, actions=[nav_launch]),

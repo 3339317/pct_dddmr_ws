@@ -1,11 +1,11 @@
 control_params:
-  max_linear_x: 0.7
+  max_linear_x: 0.55
   max_angular_z: 0.6
-  min_linear_x: 0.08
+  min_linear_x: 0.2
   min_angular_z: 0.12
   arrival_distance: 0.18
   arrival_angle_deg: 5.0
-  alpha: 0.32
+  alpha: 0.35
   obstacle_threshold: 1.5
   obstacle_inflation: 0.2
   obstacle_max_range: 3.0
@@ -19,11 +19,13 @@ control_params:
   slowdown_ratio: 0.3
   dynamic_obs_timeout: 1.0
   obstacle_avoidance_enabled: false
-  lookahead_distance: 0.55
-  path_yaw_kp: 0.032
+  lookahead_distance: 0.75
+  path_yaw_kp: 0.064
   final_yaw_kp: 0.035
   end_slowdown_distance: 1.1
   heading_slow_angle_deg: 28.0
+  rotate_in_place_angle_deg: 45.0
+  rotate_exit_angle_deg: 15.0
 smoothing_params:
   route_sample_gap: 0.2
 map_display:

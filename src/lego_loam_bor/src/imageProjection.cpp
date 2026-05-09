@@ -27,6 +27,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/circular_buffer.hpp>
+#include <cctype>
 #include "imageProjection.h"
 
 using std::placeholders::_1;
@@ -44,9 +45,21 @@ ImageProjection::ImageProjection(std::string name, Channel<ProjectionOut>& outpu
   tf_static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
   _pub_projected_image = this->create_publisher<sensor_msgs::msg::Image>("projected_image", 1);
 
-  _sub_laser_cloud = this->create_subscription<sensor_msgs::msg::PointCloud2>(
+  declare_parameter("imageProjection.input_type", rclcpp::ParameterValue("pointcloud2"));
+  this->get_parameter("imageProjection.input_type", input_type_);
+  std::transform(input_type_.begin(), input_type_.end(), input_type_.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+  RCLCPP_INFO(this->get_logger(), "imageProjection.input_type: %s", input_type_.c_str());
+
+  if (input_type_ == "livox_custom" || input_type_ == "custommsg") {
+    _sub_livox_custom_cloud = this->create_subscription<livox_ros_driver2::msg::CustomMsg>(
         "lslidar_point_cloud", 2,
-        std::bind(&ImageProjection::cloudHandler, this, std::placeholders::_1));
+        std::bind(&ImageProjection::livoxCustomHandler, this, std::placeholders::_1));
+  } else {
+    _sub_laser_cloud = this->create_subscription<sensor_msgs::msg::PointCloud2>(
+          "lslidar_point_cloud", 2,
+          std::bind(&ImageProjection::cloudHandler, this, std::placeholders::_1));
+  }
 
   _pub_full_info_cloud = this->create_publisher<sensor_msgs::msg::PointCloud2>
       ("full_cloud_info", 1);  
@@ -121,6 +134,11 @@ ImageProjection::ImageProjection(std::string name, Channel<ProjectionOut>& outpu
   declare_parameter("imageProjection.minimum_detection_range", rclcpp::ParameterValue(0.3));
   this->get_parameter("imageProjection.minimum_detection_range", _minimum_detection_range);
   RCLCPP_INFO(this->get_logger(), "imageProjection.minimum_detection_range: %.2f", _minimum_detection_range);
+
+  declare_parameter("imageProjection.input_point_stride", rclcpp::ParameterValue(1));
+  this->get_parameter("imageProjection.input_point_stride", input_point_stride_);
+  input_point_stride_ = std::max(input_point_stride_, 1);
+  RCLCPP_INFO(this->get_logger(), "imageProjection.input_point_stride: %d", input_point_stride_);
 
   declare_parameter("imageProjection.distance_for_patch_between_rings", rclcpp::ParameterValue(1.0));
   this->get_parameter("imageProjection.distance_for_patch_between_rings", distance_for_patch_between_rings_);
@@ -366,7 +384,44 @@ void ImageProjection::cloudHandler(
   std::vector<int> indices;
   _laser_cloud_in->is_dense = false;
   pcl::removeNaNFromPointCloud(*_laser_cloud_in, *_laser_cloud_in, indices);
-  
+
+  processCurrentCloud(laserCloudMsg->header);
+}
+
+void ImageProjection::livoxCustomHandler(
+    const livox_ros_driver2::msg::CustomMsg::SharedPtr laserCloudMsg){
+
+  if(!allEssentialTFReady(laserCloudMsg->header.frame_id))
+    return;
+
+  resetParameters();
+
+  _laser_cloud_in->reserve(laserCloudMsg->points.size());
+  for (size_t i = 0; i < laserCloudMsg->points.size(); i += input_point_stride_) {
+    const auto& src_point = laserCloudMsg->points[i];
+    if (!std::isfinite(src_point.x) || !std::isfinite(src_point.y) || !std::isfinite(src_point.z)) {
+      continue;
+    }
+
+    const float range_sq = src_point.x * src_point.x + src_point.y * src_point.y + src_point.z * src_point.z;
+    if (range_sq < _minimum_detection_range * _minimum_detection_range ||
+        range_sq > _maximum_detection_range * _maximum_detection_range) {
+      continue;
+    }
+
+    PointType dst_point;
+    dst_point.x = src_point.x;
+    dst_point.y = src_point.y;
+    dst_point.z = src_point.z;
+    dst_point.intensity = static_cast<float>(src_point.reflectivity);
+    _laser_cloud_in->push_back(dst_point);
+  }
+  _laser_cloud_in->is_dense = false;
+
+  processCurrentCloud(laserCloudMsg->header);
+}
+
+void ImageProjection::processCurrentCloud(const std_msgs::msg::Header& header){
 
   //@if not stitch, save copy time
   pcl::PointCloud<PointType>::Ptr pcl_stitched_msg (new pcl::PointCloud<PointType>);
@@ -388,15 +443,21 @@ void ImageProjection::cloudHandler(
   }
 
   pc_valid_ = true;
-  if(_laser_cloud_in->points.size()<_vertical_scans*_horizontal_scans*0.1*(stitcher_num_)){
-    RCLCPP_ERROR(this->get_logger(), "Expecting: %d points, but you only got %lu, check your lidar scan.", _vertical_scans*_horizontal_scans, _laser_cloud_in->points.size());
+  const double stride_factor = static_cast<double>(std::max(input_point_stride_, 1));
+  const size_t expected_min_points = static_cast<size_t>(
+      static_cast<double>(_vertical_scans * _horizontal_scans) * 0.1 * stitcher_num_ / stride_factor);
+  if(_laser_cloud_in->points.size() < expected_min_points){
+    RCLCPP_WARN_THROTTLE(
+        this->get_logger(), *clock_, 2000,
+        "Expecting at least %lu points after stride/range filtering, but got %lu.",
+        expected_min_points, _laser_cloud_in->points.size());
     pc_valid_ = false;
     return;
   }
 
-  _seg_msg.header = laserCloudMsg->header;
-  _seg_msg.header.stamp = laserCloudMsg->header.stamp;
-  _seg_msg.header.frame_id = laserCloudMsg->header.frame_id;
+  _seg_msg.header = header;
+  _seg_msg.header.stamp = header.stamp;
+  _seg_msg.header.frame_id = header.frame_id;
 
   findStartEndAngle();
   // Range image projection

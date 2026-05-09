@@ -1,88 +1,69 @@
 # pct_dddmr_nav
 
-`pct_dddmr_nav` 是本仓库的主集成包，负责启动 PCT 全局规划、DDDMR 局部避障/路径追踪、Web 控制台和桥接节点。
+`pct_dddmr_nav` 是当前导航系统的主集成包，负责启动 PCT 全局规划、MID360 局部障碍特征、轻量路线追踪器和 Web 控制台。
 
-当前设计：
+当前主链路：
 
-- 全局路径规划：PCT `.pickle` tomogram 地图。
-- 局部避障与最终 `/cmd_vel`：DDDMR `p2p_move_base` + `local_planner`。
-- 网页显示：直接加载 PCT 处理后的 `.pickle` 地图，显示地面、膨胀层、障碍物。
-- 定位和雷达驱动：当前集中工作空间已经包含 Livox MID360 驱动和 FAST-LIO/FAST-LIO-Localization。
+- 定位：`fast_lio_localization` 输出 `/localization`。
+- 全局规划：PCT `.pickle` tomogram 地图，action 名称 `get_dwa_plan`。
+- 路线追踪：`indoor_fusion_bridge/route_tracker_node` 订阅网页路线并发布 `/cmd_vel`。
+- 局部避障：`lego_loam_bor/mcl_feature` 直接订阅 Livox `CustomMsg`，输出 `/segmented_cloud_pure` 给路线追踪器。
+- 网页显示：`pct_dddmr_web` 直接读取 `.pickle` 地图，并显示定位、路径、障碍物状态。
+
+旧的 `p2p_move_base/local_planner/perception_3d` 控制链和 Livox PointCloud2 转换节点已经从当前工作空间移除。
 
 ## 输入要求
 
-运行导航前，外部系统需要提供：
+运行导航前需要提供：
 
 - `/localization`：`nav_msgs/Odometry`，机器人当前位姿。
-- TF：`map -> base_link`，通常由定位系统发布。
-- `/livox/lidar`：MID360 CustomMsg，建议用于 FAST-LIO 建图/重定位。
-- `/livox/lidar_points`：由 CustomMsg 转换出的 `sensor_msgs/PointCloud2`，用于 DDDMR 局部避障。
+- `/livox/lidar`：`livox_ros_driver2/msg/CustomMsg`，给 FAST-LIO 和 `mcl_feature` 使用。
 - PCT 转换后的 `.pickle` 地图文件。
+- 可选 TF：`map -> base_link`。如果定位节点没有发布，可用 `publish_localization_tf:=true` 由 `/localization` 桥接。
 
 ## 构建
 
 ```bash
-cd <workspace>
+cd /home/if/pct_dddmr_ws
 source /opt/ros/humble/setup.bash
 colcon build
 source install/setup.bash
 ```
 
-如果只改了本包：
+如果只改了集成层：
 
 ```bash
-colcon build --packages-select pct_dddmr_nav
+colcon build --packages-select pct_dddmr_nav pct_dddmr_web indoor_fusion_bridge
 source install/setup.bash
 ```
 
-## 启动导航
-
-一体化启动 MID360、FAST-LIO 重定位、PCT-DDDMR 导航和 Web：
+## 一体化启动
 
 ```bash
 ros2 launch pct_dddmr_nav full_livox_fastlio_pct_nav.launch.py \
-  map:=/path/to/your_map.pcd \
-  tomogram_path:=/path/to/your_map.pickle
+  map:=/home/if/fast_ws/test.pcd \
+  tomogram_path:=/home/if/pct_dddmr_ws/test.pickle \
+  use_mcl_feature:=true \
+  obstacle_avoidance_enabled:=true
 ```
 
-如果某一部分已经外部启动，可以关闭对应模块：
+如果 Livox 或 FAST-LIO 已经单独启动，可以关闭对应模块：
 
 ```bash
 ros2 launch pct_dddmr_nav full_livox_fastlio_pct_nav.launch.py \
-  map:=/path/to/your_map.pcd \
-  tomogram_path:=/path/to/your_map.pickle \
+  map:=/home/if/fast_ws/test.pcd \
+  tomogram_path:=/home/if/pct_dddmr_ws/test.pickle \
   start_livox:=false
 ```
 
-使用自己的 `.pickle` 地图：
+只启动 PCT 导航、Web 和路线追踪：
 
 ```bash
-cd <workspace>
-source install/setup.bash
-
 ros2 launch pct_dddmr_nav pct_dddmr_nav.launch.py \
-  tomogram_path:=/path/to/your_map.pickle
+  tomogram_path:=/home/if/pct_dddmr_ws/test.pickle \
+  use_mcl_feature:=true \
+  obstacle_avoidance_enabled:=true
 ```
-
-如果使用包内示例地图：
-
-```bash
-ros2 launch pct_dddmr_nav pct_dddmr_nav.launch.py
-```
-
-常用 launch 参数：
-
-```bash
-ros2 launch pct_dddmr_nav pct_dddmr_nav.launch.py --show-args
-```
-
-重要参数：
-
-- `tomogram_path`：PCT `.pickle` 地图路径。
-- `use_web`：是否启动网页端，默认 `true`。
-- `use_mcl_feature`：是否启动 DDDMR 的 MID360 局部避障输入，默认 `true`。
-- `publish_livox_tf`：是否发布 `base_link -> livox_frame` 静态 TF，默认 `true`。
-- `local_lidar_topic`：DDDMR 局部避障使用的 PointCloud2 话题，默认 `/livox/lidar_points`。
 
 网页默认地址：
 
@@ -90,74 +71,55 @@ ros2 launch pct_dddmr_nav pct_dddmr_nav.launch.py --show-args
 http://127.0.0.1:8000
 ```
 
-## Livox CustomMsg 转 PointCloud2
+## 常用 launch 参数
 
-如果 Livox 驱动使用 `xfer_format=1`，`/livox/lidar` 是 `livox_ros_driver2/msg/CustomMsg`，适合 FAST-LIO，但 DDDMR 的 `mcl_feature` 需要 `sensor_msgs/PointCloud2`。
+- `tomogram_path`：PCT `.pickle` 地图路径。
+- `use_web`：是否启动网页端，默认 `true`。
+- `use_route_tracker`：是否启动轻量路线追踪器，默认 `true`。
+- `use_mcl_feature`：是否启动 MID360 局部障碍特征节点，默认 `false`。
+- `obstacle_avoidance_enabled`：是否启用路线追踪器避障逻辑，默认 `false`。
+- `obstacle_cloud_topic`：避障输入点云，默认 `/segmented_cloud_pure`。
+- `publish_livox_tf`：是否发布 `base_link -> livox_frame` 静态 TF，默认 `true`。
+- `publish_localization_tf`：是否把 `/localization` 桥接成 `map -> base_link` TF，默认 `false`。
+- `local_lidar_topic`：`mcl_feature` 输入雷达话题，默认 `/livox/lidar`。
 
-可以启动：
+查看完整参数：
+
+```bash
+ros2 launch pct_dddmr_nav pct_dddmr_nav.launch.py --show-args
+```
+
+## Livox 输入
+
+MID360 驱动保持原生 CustomMsg 输出：
 
 ```bash
 ros2 launch pct_dddmr_nav livox_mid360_with_converter.launch.py
 ```
 
-这个 launch 会启动官方 `livox_ros_driver2 msg_MID360_launch.py`，并额外发布：
+该 launch 只发布：
 
 ```text
-/livox/lidar         CustomMsg，给 FAST-LIO
-/livox/lidar_points  PointCloud2，给 DDDMR 局部避障
+/livox/lidar  livox_ros_driver2/msg/CustomMsg
 ```
 
-如果你已经单独启动了 Livox 驱动，也可以只启动转换节点：
-
-```bash
-ros2 run pct_dddmr_nav livox_custom_to_pointcloud2 \
-  --ros-args \
-  -p input_topic:=/livox/lidar \
-  -p output_topic:=/livox/lidar_points \
-  -p frame_id:=livox_frame
-```
-
-## 测试定位脚本
-
-没有真实定位时，可以发布一个假的 `/localization` 和 `map -> base_link` TF，用来测试网页显示和 PCT 全局路径规划。
-
-固定机器人位置：
-
-```bash
-ros2 run pct_dddmr_nav test_localization_publisher \
-  --x 0 --y 0 --z 0 --yaw 0
-```
-
-模拟机器人绕圈移动：
-
-```bash
-ros2 run pct_dddmr_nav test_localization_publisher \
-  --x 0 --y 0 --z 0 --circle-radius 1.0
-```
-
-注意：如果机器人在网页上一直动，通常是因为测试脚本带了 `--circle-radius`。停止该脚本，重新用固定位置命令启动即可。
-
-检查 `/localization`：
-
-```bash
-ros2 topic echo /localization --once
-ros2 topic info /localization -v
-```
+当前系统不再发布 `/livox/lidar_points`，也不再安装 `livox_custom_to_pointcloud2` 转换节点。
 
 ## 网页端使用流程
 
 1. 启动导航 launch。
 2. 确认网页左上角显示“已定位，可以导航”。
-3. 在网页中点击“点击规划”。
+3. 点击“点击规划”。
 4. 第一次点击地图选择目标位置。
-5. 第二次点击目标前方一点，用来设置终点朝向。
-6. 后端会把“当前位置 + 目标点”同步给桥接节点，DDDMR 会调用 PCT 进行真正的全局路径规划。
+5. 第二次点击目标前方一点设置终点朝向。
+6. Web 调用 PCT `get_dwa_plan` 生成全局路径。
+7. 点击“开始导航”后，`route_tracker_node` 追踪路径并发布 `/cmd_vel`。
 
-网页中显示的绿色路线来自 `/global_path`，也就是 PCT 给 DDDMR 的全局路径。
+网页中的绿色路线来自 PCT 规划结果，路线追踪器不会持续重新规划全局路径。
 
 ## 多楼层 / 高度层筛选
 
-多楼层点云投影到网页上时，低楼层和高楼层会重叠，容易点到错误高度。网页左侧提供“高度层筛选 / 选点辅助”：
+多楼层地图投影到网页上时，不同高度会重叠。网页左侧提供高度层筛选：
 
 - 勾选“只显示并选取当前高度层”。
 - 手动设置 `Z 最小 / 最大`。
@@ -165,70 +127,73 @@ ros2 topic info /localization -v
 - 点击“上一层 / 下一层”切换高度窗口。
 - 点击“全部高度”恢复完整地图显示。
 
-开启高度层筛选后，网页选终点会优先在当前高度层内拾取点云落点；如果附近没有点云，会落到当前高度层中间高度。
-
 ## PCT 规划参数
 
-当前 PCT 参数已经恢复为原始风格：
+配置文件：
+
+```text
+src/pct_dddmr_nav/config/pct_dddmr_params.yaml
+```
+
+关键参数：
 
 ```yaml
 use_quintic: true
 safety_margin_cells: 15
 ```
 
-配置文件位置：
+- `use_quintic: true`：路径更圆滑，但在障碍物附近可能更贴边。
+- `safety_margin_cells`：安全边界格数，值越大越保守，但窄通道更容易规划失败。
 
-```text
-src/pct_dddmr_nav/config/pct_dddmr_params.yaml
-```
+## 控制参数联动
 
-说明：
+网页端控制参数会同步给 `route_tracker_node`：
 
-- `use_quintic: true`：路径会更圆滑，但在障碍物附近可能更贴边。
-- `safety_margin_cells`：安全边界格数，值越大越保守，但窄通道更可能规划失败。
-
-如果后续需要更安全的路径，建议不要做简单的“逐点吸附到可行驶点”，那会导致锯齿和竖线。更合理的方向是：基于 PCT 栅格路径做折线简化，并对每条线段做碰撞检查。
-
-## DDDMR 控制参数联动
-
-网页端控制参数会同步到 DDDMR：
-
-- `heading_slow_angle_deg`：角度偏差大时，先原地调整朝向。
 - `max_linear_x / min_linear_x`：线速度范围。
 - `max_angular_z / min_angular_z`：角速度范围。
-- `alpha`：慢加速/加速度限制。
-- `lookahead_distance`：局部路径跟踪前视距离。
+- `alpha`：速度平滑系数。
+- `lookahead_distance`：路径追踪前视距离。
 - `arrival_distance / arrival_angle_deg`：到点判定阈值。
-- `path_yaw_kp`：路径朝向跟踪权重。
+- `path_yaw_kp / final_yaw_kp`：路径朝向和最终朝向控制增益。
+- `rotate_in_place_angle_deg / rotate_exit_angle_deg`：原地转向进入和退出阈值。
 
-最终速度仍由 DDDMR 局部规划器发布，网页端不直接控制导航过程中的 `/cmd_vel`。
+最终速度由 `route_tracker_node` 发布到 `/cmd_vel`。
 
 ## 主要话题
 
 输入：
 
 - `/localization`：定位，`nav_msgs/Odometry`。
-- `/livox/lidar_points`：MID360 转换后的局部避障点云。
-- `/mapground`：处理后地面点云。
-- `/mapcloud`：处理后障碍物点云。
+- `/livox/lidar`：MID360 原生 CustomMsg。
+- `/segmented_cloud_pure`：`mcl_feature` 输出的局部障碍点云。
 
 输出：
 
-- `/global_path`：PCT 全局路径，网页显示使用它。
+- `/global_path`：PCT 全局路径，网页显示使用。
 - `/pct_path`：PCT 路径调试话题。
-- `/cmd_vel`：DDDMR 输出速度。
-- `/pct_dddmr_web/controller/state`：导航状态给网页端。
+- `/cmd_vel`：路线追踪器输出速度。
+- `/pct_dddmr_web/controller/state`：导航状态，网页显示使用。
+- `/nav/done`：导航完成状态。
 
 Action：
 
-- `/p2p_move_base`：DDDMR 点到点导航 action。
-- `get_dwa_plan`：PCT 接管的 DDDMR 全局规划 action。
+- `get_dwa_plan`：PCT 全局规划 action。
 
-注意：PCT server 已经占用 DDDMR 的 `get_dwa_plan` 全局规划 action，不要同时启动 DDDMR 原始 `global_planner_node`。
+## 测试定位脚本
 
-## 地图转换
+没有真实定位时，可以发布固定 `/localization` 和 `map -> base_link` TF：
 
-本导航工作空间只使用已经转换好的 `.pickle` 地图。建图和地图转换可以在外部单独完成。
+```bash
+ros2 run pct_dddmr_nav test_localization_publisher \
+  --x 0 --y 0 --z 0 --yaw 0
+```
+
+模拟绕圈移动：
+
+```bash
+ros2 run pct_dddmr_nav test_localization_publisher \
+  --x 0 --y 0 --z 0 --circle-radius 1.0
+```
 
 ## 常见问题
 
@@ -236,36 +201,27 @@ Action：
 
 通常是没有收到 `/localization`，导致无法组成“当前位置 + 目标点”的导航请求。
 
-检查：
-
 ```bash
 ros2 topic echo /localization --once
 ```
 
-### 网页中机器人一直移动
+### 没有速度输出
 
-检查是否运行了带 `--circle-radius` 的测试定位脚本：
+检查路线追踪器是否启动、是否收到路线和开始命令：
 
 ```bash
-ps -ef | grep test_localization_publisher
+ros2 topic echo /pct_dddmr_web/controller/state
+ros2 topic echo /cmd_vel
 ```
 
-固定位置测试请使用：
+### 避障没有反应
+
+确认启用了 `use_mcl_feature:=true obstacle_avoidance_enabled:=true`，并检查：
 
 ```bash
-ros2 run pct_dddmr_nav test_localization_publisher --x 0 --y 0 --z 0 --yaw 0
+ros2 topic hz /segmented_cloud_pure
 ```
 
 ### 高楼层终点选不中
 
 开启网页左侧“高度层筛选 / 选点辅助”，设置对应 `Z 最小 / 最大` 后再点目标。
-
-### 路径太贴障碍物
-
-可以适当增大：
-
-```yaml
-safety_margin_cells: 20
-```
-
-但不建议直接使用逐点吸附后处理，容易导致路径锯齿和异常竖线。

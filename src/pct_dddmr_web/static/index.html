@@ -7,13 +7,13 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%2300aacc'/><text x='16' y='22' font-size='20' text-anchor='middle' fill='white'>R</text></svg>">
 <style>
 :root{
-    --bg-deep:#070c18;
-    --bg-panel:#0a1222;
-    --bg-card:#0d1728;
-    --border:#1a2e50;
-    --border-focus:#2979b5;
-    --accent:#0ac;
-    --accent-dim:rgba(0,170,204,0.12);
+    --bg-deep:#050912;
+    --bg-panel:#07111f;
+    --bg-card:#0c1829;
+    --border:#183251;
+    --border-focus:#23a7c9;
+    --accent:#20d6e8;
+    --accent-dim:rgba(32,214,232,0.14);
     --green:#0ce676;
     --green-dim:rgba(12,230,118,0.14);
     --red:#ff3b5c;
@@ -22,8 +22,8 @@
     --amber-dim:rgba(240,160,32,0.14);
     --blue:#2980cc;
     --blue-dim:rgba(41,128,204,0.14);
-    --text:#c4d0e0;
-    --text-dim:#5e6d82;
+    --text:#d4e2ef;
+    --text-dim:#70849c;
     --radius:10px;
     --radius-sm:6px;
     --transition:0.2s cubic-bezier(0.4,0,0.2,1);
@@ -31,8 +31,11 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;height:100%;overflow:hidden}
 body{
-    font-family:"Segoe UI","Helvetica Neue","Noto Sans SC","PingFang SC",sans-serif;
-    background:var(--bg-deep);
+    font-family:"Bahnschrift","DIN Alternate","Noto Sans SC","PingFang SC",sans-serif;
+    background:
+        radial-gradient(circle at 12% -8%,rgba(32,214,232,0.14),transparent 34%),
+        radial-gradient(circle at 92% 8%,rgba(12,230,118,0.08),transparent 30%),
+        linear-gradient(135deg,#04070f 0%,#07101e 48%,#03060d 100%);
     color:var(--text);
 }
 body::before{
@@ -45,33 +48,71 @@ body::before{
     pointer-events:none;z-index:0;
 }
 .header{
-    padding:6px 14px;
+    min-height:64px;
+    padding:10px 16px;
     border-bottom:1px solid var(--border);
-    background:linear-gradient(180deg,var(--bg-panel),var(--bg-deep));
+    background:linear-gradient(180deg,rgba(9,22,38,0.96),rgba(5,9,18,0.92));
     position:relative;z-index:1;
-    display:flex;align-items:center;gap:16px;
+    display:grid;grid-template-columns:320px 1fr 260px;
+    align-items:center;gap:16px;
+    box-shadow:0 14px 32px rgba(0,0,0,0.28);
 }
-.header b{font-size:15px;color:var(--accent);letter-spacing:1px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{
+    width:36px;height:36px;border-radius:11px;
+    display:grid;place-items:center;
+    color:#031018;font-weight:800;letter-spacing:0.5px;
+    background:linear-gradient(135deg,#20d6e8,#0ce676);
+    box-shadow:0 0 24px rgba(32,214,232,0.28);
+}
+.brand b{font-size:16px;color:#eff9ff;letter-spacing:1.6px}
+.brand span{display:block;margin-top:2px;font-size:10px;color:var(--text-dim);letter-spacing:1.8px;text-transform:uppercase}
+.status-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.metric-pill{
+    min-height:38px;padding:7px 10px;border-radius:12px;
+    border:1px solid rgba(32,214,232,0.17);
+    background:linear-gradient(180deg,rgba(13,28,48,0.86),rgba(5,10,20,0.72));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+    color:#e6f6ff;font-size:11px;line-height:1.25;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.metric-pill strong{display:block;color:var(--accent);font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700}
+.header-status{text-align:right}
 .main{
     display:grid;
-    grid-template-columns:340px 1fr 280px;
-    gap:10px;padding:10px;
-    height:calc(100% - 44px);
+    grid-template-columns:320px minmax(560px,1fr) 318px;
+    gap:12px;padding:12px;
+    height:calc(100% - 64px);
     position:relative;z-index:1;
 }
 .panel{
     border:1px solid var(--border);
-    border-radius:var(--radius);
-    background:linear-gradient(160deg,var(--bg-panel),var(--bg-deep));
+    border-radius:16px;
+    background:
+        linear-gradient(160deg,rgba(12,24,41,0.92),rgba(5,9,18,0.96)),
+        radial-gradient(circle at top left,rgba(32,214,232,0.08),transparent 42%);
     display:flex;flex-direction:column;min-height:0;
     backdrop-filter:blur(8px);
+    box-shadow:0 18px 40px rgba(0,0,0,0.24),inset 0 1px 0 rgba(255,255,255,0.035);
 }
 .panel h3{
-    margin:0;padding:10px 14px;
+    margin:0;padding:12px 14px;
     border-bottom:1px solid var(--border);
-    font-size:14px;font-weight:600;
-    color:var(--accent);letter-spacing:1px;
-    background:linear-gradient(180deg,rgba(0,170,204,0.06),transparent);
+    font-size:13px;font-weight:700;
+    color:#eff9ff;letter-spacing:1.6px;
+    background:linear-gradient(180deg,rgba(32,214,232,0.09),transparent);
+    text-transform:uppercase;
+}
+.panel h3 span{display:block;margin-top:3px;color:var(--text-dim);font-size:10px;letter-spacing:1.2px;font-weight:500}
+.map-panel{border-color:rgba(32,214,232,0.28)}
+.map-panel .panel-body{padding:8px}
+.command-panel .panel-body,.status-panel .panel-body{padding:12px}
+.status-panel{border-color:rgba(12,230,118,0.18)}
+.tool-page{
+    border:1px solid rgba(255,255,255,0.045);
+    border-radius:14px;
+    background:rgba(2,6,14,0.24);
+    padding:10px;
 }
 .panel-body{padding:10px;overflow:auto;flex:1}
 .panel-body::-webkit-scrollbar{width:5px}
@@ -79,9 +120,9 @@ body::before{
 .panel-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 .panel-body::-webkit-scrollbar-thumb:hover{background:var(--text-dim)}
 .btn{
-    padding:7px 14px;border:none;border-radius:var(--radius-sm);
-    cursor:pointer;color:#fff;margin:3px;font-size:12px;
-    font-weight:500;letter-spacing:0.3px;
+    padding:8px 13px;border:1px solid rgba(255,255,255,0.06);border-radius:10px;
+    cursor:pointer;color:#fff;margin:2px;font-size:12px;
+    font-weight:700;letter-spacing:0.4px;
     transition:transform var(--transition),box-shadow var(--transition),filter var(--transition);
     position:relative;
 }
@@ -96,8 +137,8 @@ body::before{
 .red:hover{box-shadow:0 4px 18px var(--red-dim)}
 .orange{background:linear-gradient(135deg,#d08810,#f0a020);color:#111;box-shadow:0 2px 10px var(--amber-dim)}
 .orange:hover{box-shadow:0 4px 18px var(--amber-dim)}
-.row{margin-bottom:8px}
-.row label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:4px;font-weight:500;letter-spacing:0.2px}
+.row{margin-bottom:9px}
+.row label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:5px;font-weight:600;letter-spacing:0.3px}
 .row input{
     width:100%;padding:8px 10px;border-radius:var(--radius-sm);
     border:1px solid var(--border);background:var(--bg-deep);
@@ -106,12 +147,12 @@ body::before{
 }
 .row input:focus{outline:none;border-color:var(--border-focus);box-shadow:0 0 0 3px var(--accent-dim)}
 .row input[type="checkbox"]{width:auto;margin-right:6px;accent-color:var(--accent)}
-#mapCanvas{width:100%;height:100%;display:block;background:#060d1a;border-radius:var(--radius)}
+#mapCanvas{width:100%;height:100%;display:block;background:#050b15;border-radius:14px}
 .canvas-wrap{
-    position:relative;height:100%;min-height:620px;
-    border:1px solid var(--border);border-radius:var(--radius);
+    position:relative;height:calc(100% - 46px);min-height:620px;
+    border:1px solid rgba(32,214,232,0.24);border-radius:16px;
     overflow:hidden;
-    box-shadow:0 0 40px rgba(0,170,204,0.06),inset 0 0 80px rgba(0,0,0,0.5);
+    box-shadow:0 0 60px rgba(32,214,232,0.08),inset 0 0 100px rgba(0,0,0,0.58);
 }
 .canvas-wrap::before{
     content:"";position:absolute;inset:0;
@@ -127,11 +168,11 @@ body::before{
 }
 .small{font-size:11px;color:var(--text-dim);line-height:1.7}
 pre{white-space:pre-wrap;word-break:break-word}
-.toolbar{display:flex;flex-wrap:wrap;gap:6px}
+.toolbar{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px}
 .tool-tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-bottom:10px}
 .tab-btn{
-    padding:7px 6px;border:1px solid var(--border);
-    border-radius:var(--radius-sm);background:var(--bg-deep);
+    padding:9px 6px;border:1px solid var(--border);
+    border-radius:12px;background:rgba(2,6,14,0.62);
     color:var(--text-dim);cursor:pointer;font-size:11px;font-weight:500;
     transition:all var(--transition);
 }
@@ -156,48 +197,30 @@ pre{white-space:pre-wrap;word-break:break-word}
     border:1px solid var(--border);
 }
 .section-title{
-    margin-top:10px;color:var(--accent);font-size:12px;
-    font-weight:600;letter-spacing:1px;text-transform:uppercase;
+    margin:12px 0 7px;color:var(--accent);font-size:11px;
+    font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
 }
 .mode-box{
-    margin-top:8px;padding:8px 10px;
-    border:1px solid var(--border);border-radius:var(--radius-sm);
-    background:var(--bg-deep);font-size:11px;line-height:1.7;
+    margin:8px 0 10px;padding:10px 12px;
+    border:1px solid rgba(32,214,232,0.16);border-radius:14px;
+    background:linear-gradient(180deg,rgba(8,20,35,0.78),rgba(3,8,16,0.70));
+    font-size:11px;line-height:1.7;
 }
-.direction-pad{
-    display:grid;
-    grid-template-columns:1fr 1fr 1fr;
-    grid-template-rows:auto auto auto;
-    gap:4px;margin-top:10px;padding:8px;
-    border:1px solid var(--border);border-radius:var(--radius);
-    background:var(--bg-deep);
-    justify-items:center;align-items:center;
+.status-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px}
+.stat-card{
+    border:1px solid rgba(255,255,255,0.055);
+    border-radius:12px;
+    background:linear-gradient(180deg,rgba(13,28,48,0.76),rgba(4,9,18,0.66));
+    padding:9px 10px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.035);
 }
-.dir-btn{
-    width:66px;height:56px;
-    border:1px solid var(--border);
-    border-radius:var(--radius-sm);
-    background:linear-gradient(160deg,var(--bg-card),var(--bg-deep));
-    color:#c0ccdd;cursor:pointer;
-    font-size:11px;line-height:1.3;
-    user-select:none;-webkit-user-select:none;
-    transition:all var(--transition);
+.stat-card b{display:block;color:var(--accent);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:3px}
+.stat-card .small,.stat-card.status{font-size:12px;color:var(--text);line-height:1.5}
+.camera-frame{
+    flex:1;min-height:150px;border:1px solid rgba(32,214,232,0.18);
+    border-radius:14px;overflow:hidden;margin:10px 0;
+    background:linear-gradient(135deg,#02050b,#07111f);
 }
-.dir-btn:hover{border-color:var(--border-focus);color:#fff}
-.dir-btn:active,.dir-btn.active{
-    background:linear-gradient(135deg,#1a4070,#2070a0);
-    border-color:var(--accent);color:#fff;
-    box-shadow:0 0 14px var(--accent-dim);
-}
-.dir-stop{
-    width:66px;height:56px;
-    background:linear-gradient(135deg,#991b1b,#c0283c);
-    border-color:#ef4454;color:#fff;
-    font-weight:bold;font-size:13px;
-    transition:all var(--transition);
-}
-.dir-stop:hover{filter:brightness(1.2);box-shadow:0 0 14px var(--red-dim)}
-.dir-stop:active{filter:brightness(0.9)}
 @keyframes breathe{
     0%,100%{opacity:0.4;box-shadow:0 0 4px var(--accent-dim)}
     50%{opacity:1;box-shadow:0 0 12px var(--accent-dim)}
@@ -213,18 +236,33 @@ pre{white-space:pre-wrap;word-break:break-word}
 }
 .status-dot.online{background:var(--green);animation:breathe 2s ease-in-out infinite}
 .status-dot.offline{background:var(--red);animation:breathe 1s ease-in-out infinite}
-@media(max-width:1350px){.main{grid-template-columns:1fr}}
+@media(max-width:1350px){
+    .header{grid-template-columns:1fr}
+    .status-strip{grid-template-columns:repeat(2,1fr)}
+    .header-status{text-align:left}
+    .main{grid-template-columns:1fr;height:auto;overflow:auto}
+    html,body{overflow:auto}
+}
 </style>
 </head>
 <body>
 <div class="header">
-    <div><b>ROS2 室内导航控制台</b></div>
-    <div class="small" id="topStatus"><span class="status-dot online"></span>状态：等待操作</div>
+    <div class="brand">
+        <div class="brand-mark">PCT</div>
+        <div><b>ROS2 室内导航控制台</b><span>FAST-LIO / PCT / DDDMR</span></div>
+    </div>
+    <div class="status-strip">
+        <div class="metric-pill"><strong>定位</strong><span id="topPoseMetric">X=-- Y=-- Yaw=--</span></div>
+        <div class="metric-pill"><strong>速度</strong><span id="topVelMetric">vx=0.00 wz=0.00</span></div>
+        <div class="metric-pill"><strong>导航</strong><span id="topNavMetric">阶段 -</span></div>
+        <div class="metric-pill"><strong>避障</strong><span id="topObstacleMetric">动态障碍 0</span></div>
+    </div>
+    <div class="small header-status" id="topStatus"><span class="status-dot online"></span>状态：等待操作</div>
 </div>
 
 <div class="main">
-    <div class="panel">
-        <h3>操作 / 参数</h3>
+    <div class="panel command-panel">
+        <h3>任务控制<span>目标、定位、底盘和参数</span></h3>
         <div class="panel-body">
 
             <div class="tool-tabs">
@@ -283,26 +321,6 @@ pre{white-space:pre-wrap;word-break:break-word}
                     <button class="btn gray" onclick="chassisSitdown()">蹲下</button>
                 </div>
 
-                <div class="section-title">速度控制</div>
-                <div class="row">
-                    <label>线速度 <span id="chassisSpeedLabel">0.40</span> m/s</label>
-                    <input id="chassisSpeedSlider" type="range" min="0.05" max="1.50" step="0.05" value="0.40" oninput="chassisSpeedChanged()">
-                </div>
-                <div class="row">
-                    <label>角速度 <span id="chassisTurnSpeedLabel">0.50</span> rad/s</label>
-                    <input id="chassisTurnSpeedSlider" type="range" min="0.10" max="2.00" step="0.05" value="0.50" oninput="chassisTurnSpeedChanged()">
-                </div>
-
-                <div class="direction-pad">
-                    <button class="dir-btn" id="dirFwd"     data-vx="+1" data-vy="0" data-vz="0"  onmousedown="startDirMove(this)" onmouseup="stopDirMove()" onmouseleave="stopDirMove()" ontouchstart="startDirMove(this)" ontouchend="stopDirMove()">▲<br>前进</button>
-                    <button class="dir-btn" id="dirTurnL"   data-vx="0" data-vy="0" data-vz="+1" onmousedown="startDirMove(this)" onmouseup="stopDirMove()" onmouseleave="stopDirMove()" ontouchstart="startDirMove(this)" ontouchend="stopDirMove()">↺<br>左转</button>
-                    <button class="dir-btn dir-stop" id="dirStop" onclick="chassisStop()">STOP</button>
-                    <button class="dir-btn" id="dirTurnR"   data-vx="0" data-vy="0" data-vz="-1" onmousedown="startDirMove(this)" onmouseup="stopDirMove()" onmouseleave="stopDirMove()" ontouchstart="startDirMove(this)" ontouchend="stopDirMove()">↻<br>右转</button>
-                    <button class="dir-btn" id="dirBack"    data-vx="-1" data-vy="0" data-vz="0"  onmousedown="startDirMove(this)" onmouseup="stopDirMove()" onmouseleave="stopDirMove()" ontouchstart="startDirMove(this)" ontouchend="stopDirMove()">▼<br>后退</button>
-                    <button class="dir-btn" id="dirLeft"    data-vx="0" data-vy="+1" data-vz="0"  onmousedown="startDirMove(this)" onmouseup="stopDirMove()" onmouseleave="stopDirMove()" ontouchstart="startDirMove(this)" ontouchend="stopDirMove()">◄<br>左移</button>
-                    <button class="dir-btn" id="dirRight"   data-vx="0" data-vy="-1" data-vz="0"  onmousedown="startDirMove(this)" onmouseup="stopDirMove()" onmouseleave="stopDirMove()" ontouchstart="startDirMove(this)" ontouchend="stopDirMove()">►<br>右移</button>
-                </div>
-
                 <div class="section-title">安全 / 传感器</div>
                 <div class="toolbar">
                     <button class="btn red" onclick="chassisEmgyStop()">⚠ 紧急停止</button>
@@ -341,8 +359,8 @@ pre{white-space:pre-wrap;word-break:break-word}
         </div>
     </div>
 
-    <div class="panel">
-        <h3>3D 点云视图</h3>
+    <div class="panel map-panel">
+        <h3>3D 点云视图<span>地图、路径、动态障碍和机器人姿态</span></h3>
         <div class="panel-body">
             <div class="toolbar">
                 <button class="btn gray" onclick="fitView()">适配视图</button>
@@ -362,17 +380,18 @@ pre{white-space:pre-wrap;word-break:break-word}
         </div>
     </div>
 
-    <div class="panel">
-        <h3>状态</h3>
+    <div class="panel status-panel">
+        <h3>运行状态<span>实时反馈和诊断信息</span></h3>
         <div class="panel-body">
-            <div class="status" id="statusText">等待操作</div>
-            <div class="small" id="poseText">当前位置: X=--- Y=--- Z=--- Yaw=---</div>
-            <div class="small" id="velText">当前速度: vx=0.00 wz=0.00</div>
-            <div class="small" id="navText">导航阶段: -</div>
-            <div class="small" id="lookaheadText">前视目标: -</div>
-            <div class="small" id="cameraTopicText">图像话题: -</div>
-            <hr>
-            <div style="flex:1;min-height:150px;border:1px solid #23314a;border-radius:8px;overflow:hidden;margin-bottom:10px">
+            <div class="status-grid">
+                <div class="stat-card"><b>系统</b><div class="status" id="statusText">等待操作</div></div>
+                <div class="stat-card"><b>位姿</b><div class="small" id="poseText">当前位置: X=--- Y=--- Z=--- Yaw=---</div></div>
+                <div class="stat-card"><b>速度</b><div class="small" id="velText">当前速度: vx=0.00 wz=0.00</div></div>
+                <div class="stat-card"><b>导航</b><div class="small" id="navText">导航阶段: -</div></div>
+                <div class="stat-card"><b>前视 / 避障</b><div class="small" id="lookaheadText">前视目标: -</div></div>
+                <div class="stat-card"><b>图像</b><div class="small" id="cameraTopicText">图像话题: -</div></div>
+            </div>
+            <div class="camera-frame">
                 <img id="cameraImg" style="width:100%;height:100%;object-fit:cover;background:black;">
             </div>
             <pre id="routeInfo"></pre>
@@ -442,6 +461,10 @@ const ui = {
     _mapLayersNormalized: {ground: [], inflation: [], obstacle: []},
     _mapAllPointsNormalized: [],
     _mapLayersRevision: "",
+    _lastInfoUpdateMs: 0,
+    _lastRenderMs: 0,
+    _renderMinIntervalMs: 66,
+    _maxMapDrawPoints: 45000,
     _infoCache: {}
 };
 async function api(url, method="GET", data=null, isForm=false){
@@ -993,6 +1016,22 @@ function getRemainingRoutePoints(){
     return result;
 }
 
+function getDynamicObstacleClusters(){
+    const nav = (ui.state && ui.state.nav) || {};
+    return Array.isArray(nav.obstacle_clusters) ? nav.obstacle_clusters : [];
+}
+
+function getDynamicObstacleBoxes(){
+    const nav = (ui.state && ui.state.nav) || {};
+    return Array.isArray(nav.obstacle_boxes) ? nav.obstacle_boxes : [];
+}
+
+function getLocalDetourPath(){
+    const nav = (ui.state && ui.state.nav) || {};
+    if(!Array.isArray(nav.local_detour_path)) return [];
+    return nav.local_detour_path.map(pointFromAny);
+}
+
 function getViewMatrix(){
     const cy = Math.cos(ui.view.yaw);
     const sy = Math.sin(ui.view.yaw);
@@ -1421,6 +1460,54 @@ function drawCylinderProjected(center, radius, height, fillColor="#2492ff", stro
     });
 }
 
+function drawDynamicObstacles(){
+    if(!ui.state || !ui.state.nav) return;
+    const clusters = getDynamicObstacleClusters();
+    const boxes = getDynamicObstacleBoxes();
+    if(clusters.length === 0 && boxes.length === 0) return;
+
+    ctx.save();
+
+    boxes.forEach((box)=>{
+        const z = ui.state.current_pose ? Number(ui.state.current_pose.z || 0) : getDefaultDrawPlaneZ();
+        const corners = [
+            {x:Number(box.x_min || 0), y:Number(box.y_min || 0), z:z},
+            {x:Number(box.x_max || 0), y:Number(box.y_min || 0), z:z},
+            {x:Number(box.x_max || 0), y:Number(box.y_max || 0), z:z},
+            {x:Number(box.x_min || 0), y:Number(box.y_max || 0), z:z},
+        ];
+        drawClosedProjected(corners, "rgba(239,68,68,0.12)", "rgba(248,113,113,0.95)", 2);
+    });
+
+    clusters.forEach((cluster, idx)=>{
+        const zMin = Number(cluster.z_min ?? (ui.state.current_pose ? ui.state.current_pose.z : 0));
+        const zMax = Number(cluster.z_max ?? zMin);
+        const center = {
+            x: Number(cluster.center_x || 0),
+            y: Number(cluster.center_y || 0),
+            z: (zMin + zMax) * 0.5,
+        };
+        if(ui.useZFilter && !pointInActiveZ(center)) return;
+        const radius = Math.max(0.08, Number(cluster.radius || 0.12));
+        const ring = buildCirclePoints3D(center, radius, 0.0, 28);
+        drawClosedProjected(ring, "rgba(239,68,68,0.22)", "#fecaca", 2.2);
+        const sp = projectPoint(center);
+        drawCircle2D(sp, 4.5, "#ef4444", "#ffffff", 1.2);
+        drawText2D("动态障碍 " + (idx + 1), sp.x + 9, sp.y - 9, "#fecaca");
+    });
+
+    if(ui.state.nav.is_obstacle_paused){
+        ctx.fillStyle = "rgba(127,29,29,0.74)";
+        ctx.strokeStyle = "rgba(254,202,202,0.85)";
+        ctx.lineWidth = 1;
+        ctx.fillRect(24, canvas.height - 58, 188, 34);
+        ctx.strokeRect(24, canvas.height - 58, 188, 34);
+        drawText2D("避障暂停: 前方路径被占用", 38, canvas.height - 36, "#fee2e2");
+    }
+
+    ctx.restore();
+}
+
 function pointToSegmentDistance2D(px, py, ax, ay, bx, by){
     const abx = bx - ax;
     const aby = by - ay;
@@ -1600,12 +1687,15 @@ let _renderLocked = false;
 function scheduleRender(){
     if(_renderLocked) return;
     if(_renderPending) return;
+    const now = performance.now();
+    const delay = Math.max(0, (ui._lastRenderMs + ui._renderMinIntervalMs) - now);
     _renderPending = true;
-    requestAnimationFrame(()=>{
+    setTimeout(()=>requestAnimationFrame(()=>{
         _renderPending = false;
         if(_renderLocked) return;
+        ui._lastRenderMs = performance.now();
         try{render();}catch(e){console.error("[render]",e);}
-    });
+    }), delay);
 }
 
 function render(){
@@ -1676,8 +1766,9 @@ function render(){
         var drawLayer=function(pts,color,size){
             if(!pts||pts.length===0)return;
             var useF=ui.useZFilter,azMin=ui.activeZMin,azMax=ui.activeZMax;
+            var stride=Math.max(1,Math.ceil(pts.length/(ui._maxMapDrawPoints||45000)));
             ctx.fillStyle=color;
-            for(var i=0;i<pts.length;i++){
+            for(var i=0;i<pts.length;i+=stride){
                 var p=pts[i];
                 if(useF){var pz=p.z;if(pz<azMin||pz>azMax)continue;}
                 var sp=_proj(p);
@@ -1706,6 +1797,14 @@ function render(){
         var route=getRoutePoints(),remaining=getRemainingRoutePoints();
         if(remaining.length>=2){
             drawFilteredPolylineProjected(remaining,"#22c55e",2.4);
+            var detourPath=getLocalDetourPath();
+            if(detourPath.length>=2){
+                ctx.setLineDash([8, 6]);
+                drawFilteredPolylineProjected(detourPath,"#38bdf8",3.2);
+                ctx.setLineDash([]);
+                var dp=projectPoint(detourPath[Math.min(1, detourPath.length-1)]);
+                drawText2D("临时绕行",dp.x+8,dp.y-8,"#bae6fd");
+            }
             if(ui.mode==="delete_route_segment"){
                 if(ui.pendingDeleteRouteIdx!==null&&route[ui.pendingDeleteRouteIdx]){
                     var p=projectPoint(route[ui.pendingDeleteRouteIdx]);
@@ -1724,6 +1823,8 @@ function render(){
             }
         }
     }
+
+    drawDynamicObstacles();
 
     if((ui.mode==="draw_route"||ui.mode==="draw_curve")&&ui.drawingRoutePoints.length>=2){
         if(ui.curveMode)drawCurveProjected(ui.drawingRoutePoints,"#f97316",2.5);
@@ -1756,11 +1857,6 @@ function render(){
     }
 
     if(ui.showRobot&&ui.state.current_pose){
-        ui._render_seq=(ui._render_seq||0)+1;
-        if(ui._render_seq%50===1){
-            var cp=ui.state.current_pose;
-            console.log("[RENDER #"+ui._render_seq+"] robot at:","x="+cp.x?.toFixed(2)+" y="+cp.y?.toFixed(2)+" z="+cp.z?.toFixed(2)+" yaw_deg="+cp.yaw_deg?.toFixed(1));
-        }
         var pose=pointFromAny(ui.state.current_pose);
         var yaw=Number(ui.state.current_pose.yaw_deg||0)*Math.PI/180;
 
@@ -1960,16 +2056,37 @@ function updateInfo(){
     if(ui.state.current_pose){
         var pt='当前位置: X='+ui.state.current_pose.x.toFixed(2)+' Y='+ui.state.current_pose.y.toFixed(2)+' Z='+(ui.state.current_pose.z||0).toFixed(2)+' Yaw='+ui.state.current_pose.yaw_deg.toFixed(1)+'°';
         document.getElementById("poseText").innerText=pt;
+        var topPose='X='+ui.state.current_pose.x.toFixed(2)+' Y='+ui.state.current_pose.y.toFixed(2)+' Yaw='+ui.state.current_pose.yaw_deg.toFixed(0)+'°';
+        var topPoseEl=document.getElementById("topPoseMetric");
+        if(topPoseEl && ic._topPose!==topPose){ic._topPose=topPose;topPoseEl.innerText=topPose;}
     }else{document.getElementById("poseText").innerText="当前位置: X=--- Y=--- Z=--- Yaw=---";}
     var vt='当前速度: vx='+(ui.state.current_vx||0).toFixed(2)+' wz='+(ui.state.current_wz||0).toFixed(2);
     if(ic._vel!==vt){ic._vel=vt;document.getElementById("velText").innerText=vt;}
+    var topVel='vx='+(ui.state.current_vx||0).toFixed(2)+' wz='+(ui.state.current_wz||0).toFixed(2);
+    var topVelEl=document.getElementById("topVelMetric");
+    if(topVelEl && ic._topVel!==topVel){ic._topVel=topVel;topVelEl.innerText=topVel;}
     var nt="导航阶段: "+((ui.state.nav&&ui.state.nav.stage)||"-");
     if(ic._nav!==nt){ic._nav=nt;document.getElementById("navText").innerText=nt;}
+    var topNav=((ui.state.nav&&ui.state.nav.stage)||"-");
+    var topNavEl=document.getElementById("topNavMetric");
+    if(topNavEl && ic._topNav!==topNav){ic._topNav=topNav;topNavEl.innerText=topNav;}
+    var navState = ui.state.nav || {};
+    var obsDist = Number(navState.obstacle_distance || 999);
+    var obsCount = getDynamicObstacleClusters().length;
+    var ot = obsDist < 998
+        ? "动态障碍: " + obsCount + " 个 最近 " + obsDist.toFixed(2) + "m" + (navState.is_obstacle_paused ? " | 已暂停" : "")
+        : "动态障碍: " + obsCount + " 个";
+    if(navState.local_detour_active) ot += " | 临时绕行";
+    var topObs=obsDist < 998 ? obsCount+" 个 / "+obsDist.toFixed(2)+"m" : obsCount+" 个";
+    if(navState.local_detour_active) topObs += " / 绕行";
+    if(navState.is_obstacle_paused) topObs += " / 暂停";
+    var topObsEl=document.getElementById("topObstacleMetric");
+    if(topObsEl && ic._topObs!==topObs){ic._topObs=topObs;topObsEl.innerText=topObs;}
     if(ui.state.nav&&ui.state.nav.lookahead_target){
         var p=ui.state.nav.lookahead_target;
-        var lt='前视目标: ('+p.x.toFixed(2)+', '+p.y.toFixed(2)+', '+(p.z||0).toFixed(2)+')';
+        var lt='前视目标: ('+p.x.toFixed(2)+', '+p.y.toFixed(2)+', '+(p.z||0).toFixed(2)+') | '+ot;
         if(ic._look!==lt){ic._look=lt;document.getElementById("lookaheadText").innerText=lt;}
-    }else{if(ic._look!=='-'){ic._look='-';document.getElementById("lookaheadText").innerText="前视目标: -";}}
+    }else{if(ic._look!==ot){ic._look=ot;document.getElementById("lookaheadText").innerText="前视目标: - | "+ot;}}
     var ct="图像话题: "+((ui.state.camera&&ui.state.camera.topic)||"-");
     if(ic._cam!==ct){ic._cam=ct;document.getElementById("cameraTopicText").innerText=ct;}
     var lines=[];
@@ -1982,6 +2099,8 @@ function updateInfo(){
     lines.push("导航完成话题: "+(topics.nav_done_topic||"-"));
     lines.push("默认参数文件: "+(ui.defaultParamsPath||"-"));
     lines.push("路线点数: "+((ui.state.route_polyline||[]).length));
+    lines.push("动态障碍: "+obsCount+" 个"+(obsDist < 998 ? "，最近 "+obsDist.toFixed(2)+" m" : ""));
+    if(navState.local_detour_active) lines.push("临时绕行: 已启用，绕行点 "+getLocalDetourPath().length);
     var ri=lines.join("\n");
     if(ic._routeInfo!==ri){ic._routeInfo=ri;document.getElementById("routeInfo").textContent=ri;}
 }
@@ -2151,23 +2270,8 @@ function closeRosImage(){
 // ========== 底盘控制 ==========
 let chassis = {
     stairOn: false,
-    imuOn: false,
-    linearSpeed: 0.40,
-    turnSpeed: 0.50,
-    activeDir: null
+    imuOn: false
 };
-
-function chassisSpeedChanged(){
-    const v = parseFloat(document.getElementById("chassisSpeedSlider").value);
-    chassis.linearSpeed = v;
-    document.getElementById("chassisSpeedLabel").innerText = v.toFixed(2);
-}
-
-function chassisTurnSpeedChanged(){
-    const v = parseFloat(document.getElementById("chassisTurnSpeedSlider").value);
-    chassis.turnSpeed = v;
-    document.getElementById("chassisTurnSpeedLabel").innerText = v.toFixed(2);
-}
 
 async function chassisSetMode(mode){
     try {
@@ -2224,44 +2328,6 @@ async function chassisToggleImu(){
     }
 }
 
-function startDirMove(btn){
-    const signVx = parseInt(btn.dataset.vx || "0");
-    const signVy = parseInt(btn.dataset.vy || "0");
-    const signVz = parseInt(btn.dataset.vz || "0");
-
-    const vx = signVx * chassis.linearSpeed;
-    const vy = signVy * chassis.linearSpeed;
-    const vz = signVz * chassis.turnSpeed;
-
-    chassis.activeDir = btn;
-    btn.classList.add("active");
-    api("/api/chassis/cmd_vel", "POST", {vx, vy, vz}).then(d=>{
-        if(d && d.ok && chassis.activeDir === btn){
-            setStatus(d.message || `cmd_vel: vx=${vx.toFixed(2)} vy=${vy.toFixed(2)} wz=${vz.toFixed(2)}`);
-        }
-    }).catch(e=>{
-        setStatus("cmd_vel error: " + e.message);
-    });
-}
-
-function stopDirMove(){
-    if(chassis.activeDir){
-        chassis.activeDir.classList.remove("active");
-        chassis.activeDir = null;
-    }
-    api("/api/chassis/cmd_vel", "POST", {vx:0, vy:0, vz:0}).catch(()=>{});
-}
-
-function chassisStop(){
-    stopDirMove();
-}
-
-document.addEventListener("mouseup", (e)=>{
-    if(chassis.activeDir && !e.target.closest(".dir-btn")){
-        stopDirMove();
-    }
-});
-
 async function shutdownProgram(){
     if(!confirm("确定关闭程序吗？")) return;
     try{
@@ -2297,11 +2363,6 @@ function connectWS(){
             const d = JSON.parse(ev.data);
             if(d.type === "compact_state"){
                 ui._ws_msg_seq = (ui._ws_msg_seq || 0) + 1;
-                if(ui._ws_msg_seq === 1 || ui._ws_msg_seq % 50 === 1){
-                    const cp = d.current_pose;
-                    console.log("[WS #"+ui._ws_msg_seq+"] pose:", cp ? `x=${cp.x?.toFixed(2)} y=${cp.y?.toFixed(2)} z=${cp.z?.toFixed(2)} yaw_deg=${cp.yaw_deg?.toFixed(1)}` : "NULL");
-                }
-
                 const oldRev = {...ui.revisions};
 
                 if(!ui.state) ui.state = {};
@@ -2319,7 +2380,11 @@ function connectWS(){
                 ui.state.revisions = d.revisions || {map:0, route:0};
 
                 try {
-                    updateInfo();
+                    const nowMs = performance.now();
+                    if(nowMs - (ui._lastInfoUpdateMs || 0) > 100){
+                        ui._lastInfoUpdateMs = nowMs;
+                        updateInfo();
+                    }
                 } catch(e2) { console.error("[WS] updateInfo error:", e2); }
                 try {
                     scheduleRender();

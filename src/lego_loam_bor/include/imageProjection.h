@@ -24,6 +24,8 @@
 
 #include <filesystem>
 
+#include <livox_ros_driver2/msg/custom_msg.hpp>
+
 #ifdef TRT_ENABLED
 #include "dddmr_trt/yolov8.h"
 #include <opencv2/cudaimgproc.hpp>
@@ -38,6 +40,7 @@ class ImageProjection : public rclcpp::Node
     ~ImageProjection() = default;
     
     void cloudHandler(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
+    void livoxCustomHandler(const livox_ros_driver2::msg::CustomMsg::SharedPtr msg);
     void tfInitial();
     
     bool to_fa_;
@@ -59,6 +62,7 @@ class ImageProjection : public rclcpp::Node
     void cloudSegmentation();
     void labelComponents(int row, int col);
     void publishClouds();
+    void processCurrentCloud(const std_msgs::msg::Header& header);
     bool allEssentialTFReady(std::string sensor_frame);
     void getNoPitchPoint(PointType& pt_in, PointType& pt_out);
     
@@ -92,6 +96,7 @@ class ImageProjection : public rclcpp::Node
     Channel<ProjectionOut>& _output_channel;
 
     rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr _sub_laser_cloud;
+    rclcpp::Subscription<livox_ros_driver2::msg::CustomMsg>::SharedPtr _sub_livox_custom_cloud;
 
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr _pub_full_info_cloud;
 
@@ -113,6 +118,7 @@ class ImageProjection : public rclcpp::Node
 
     float _maximum_detection_range;
     float _minimum_detection_range;
+    int input_point_stride_;
     double distance_for_patch_between_rings_;
     int first_frame_processed_;
     bool got_baselink2sensor_tf_;
@@ -137,6 +143,7 @@ class ImageProjection : public rclcpp::Node
     std::string trt_model_path_;
     int projected_image_stack_size_;
     std::deque<cv::Mat> projected_image_queue_;
+    std::string input_type_;
     
     double sensor_install_pitch_;
     double ground_slope_tolerance_, ground_dz_tolerance_;

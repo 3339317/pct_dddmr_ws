@@ -73,7 +73,7 @@ double kdtree_incremental_time = 0.0, kdtree_search_time = 0.0, kdtree_delete_ti
 double T1[MAXN], s_plot[MAXN], s_plot2[MAXN], s_plot3[MAXN], s_plot4[MAXN], s_plot5[MAXN], s_plot6[MAXN], s_plot7[MAXN], s_plot8[MAXN], s_plot9[MAXN], s_plot10[MAXN], s_plot11[MAXN];
 double match_time = 0, solve_time = 0, solve_const_H_time = 0;
 int kdtree_size_st = 0, kdtree_size_end = 0, add_point_size = 0, kdtree_delete_counter = 0;
-bool runtime_pos_log = false, pcd_save_en = false, time_sync_en = false;
+bool runtime_pos_log = false, pcd_save_en = false, time_sync_en = false, path_pub_en = false;
 /**************************/
 
 float res_last[100000] = {0.0};
@@ -736,7 +736,7 @@ class LaserMappingNode : public rclcpp::Node
 public:
     LaserMappingNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions()) : Node("laser_mapping", options)
     {
-        // this->declare_parameter<bool>("publish.path_en", true);
+        this->declare_parameter<bool>("publish.path_en", false);
         this->declare_parameter<bool>("publish.effect_map_en", false);
         this->declare_parameter<bool>("publish.map_en", false);
         this->declare_parameter<bool>("publish.scan_publish_en", true);
@@ -769,7 +769,7 @@ public:
         this->declare_parameter<bool>("pcd_save.pcd_save_en", false);
         this->declare_parameter<vector<double>>("mapping.extrinsic_T", vector<double>());
         this->declare_parameter<vector<double>>("mapping.extrinsic_R", vector<double>());
-        // this->get_parameter_or<bool>("publish.path_en", path_en, true);
+        this->get_parameter_or<bool>("publish.path_en", path_pub_en, false);
         this->get_parameter_or<bool>("publish.effect_map_en", effect_pub_en, false);
         this->get_parameter_or<bool>("publish.map_en", map_pub_en, false);
         this->get_parameter_or<bool>("publish.scan_publish_en", scan_pub_en, true);
@@ -1002,7 +1002,8 @@ private:
             t5 = omp_get_wtime();
 
             /******* Publish points *******/
-            publish_path(pubPath_);
+            if (path_pub_en)
+                publish_path(pubPath_);
             if (scan_pub_en || pcd_save_en)
                 publish_frame_world(pubLaserCloudFull_);
             if (scan_pub_en && scan_body_pub_en)

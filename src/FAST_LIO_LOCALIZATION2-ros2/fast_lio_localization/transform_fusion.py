@@ -4,6 +4,8 @@ import copy
 import threading
 import time
 import numpy as np
+if not hasattr(np, "float"):
+    np.float = float
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Pose, Point, Quaternion
@@ -28,7 +30,8 @@ class TransformFusion(Node):
         self.create_subscription(Odometry, "/Odometry", self.cb_save_cur_odom, 1)
         self.create_subscription(Odometry, "/map_to_odom", self.cb_save_map_to_odom, 1)
 
-        self.freq_pub_localization = 50
+        self.declare_parameter("freq_pub_localization", 25.0)
+        self.freq_pub_localization = max(1.0, float(self.get_parameter("freq_pub_localization").value))
         self.timer = self.create_timer(1/self.freq_pub_localization, self.transform_fusion)
         # threading.Thread(target=self.transform_fusion, daemon=True).start()
 

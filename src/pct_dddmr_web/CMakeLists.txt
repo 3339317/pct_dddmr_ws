@@ -12,11 +12,6 @@ install(PROGRAMS scripts/web_app.py
   RENAME web_app
 )
 
-install(PROGRAMS scripts/publish_pcl_pose.py
-  DESTINATION lib/${PROJECT_NAME}
-  RENAME publish_pcl_pose
-)
-
 install(FILES scripts/core_ros.py scripts/nav_state.py
   DESTINATION lib/${PROJECT_NAME}
 )

@@ -3,21 +3,17 @@
 <package format="3">
   <name>indoor_fusion_bridge</name>
   <version>1.0.0</version>
-  <description>Bridge node fusing DDDMR navigation with the PCT-DDDMR web UI</description>
+  <description>Route tracker connecting the PCT-DDDMR web UI to cmd_vel output</description>
   <maintainer email="dev@robot.com">robot</maintainer>
   <license>BSD-3-Clause</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>rclcpp</depend>
-  <depend>rclcpp_action</depend>
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
+  <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
-  <depend>tf2</depend>
-  <depend>tf2_ros</depend>
-  <depend>tf2_geometry_msgs</depend>
-  <depend>dddmr_sys_core</depend>
   <depend>nlohmann-json-dev</depend>
 
   <export>
